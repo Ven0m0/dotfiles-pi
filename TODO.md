@@ -1,5 +1,9 @@
 ## Build pi os / dietpi/raspberrypios
 
+- https://github.com/adamdrake/dietpiconfig
+- https://github.com/nonnorm/DietPi-Dashboard
+- https://github.com/lishuren/DietPi-Download-Station
+
 - https://github.com/Nature40/pimod
 - https://github.com/ethanjli/piqemu-action
 - https://github.com/ethanjli/pinspawn-action
