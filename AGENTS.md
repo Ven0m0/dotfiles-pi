@@ -44,9 +44,10 @@ There is no automated test suite in this repository today.
 Validate changes with the smallest relevant checks:
 
 ```bash
-bash -n /home/runner/work/dotfiles-pi/dotfiles-pi/apps.sh
-bash -n /home/runner/work/dotfiles-pi/dotfiles-pi/mise.sh
-shellcheck /home/runner/work/dotfiles-pi/dotfiles-pi/apps.sh /home/runner/work/dotfiles-pi/dotfiles-pi/mise.sh
+cd <repo-root>
+bash -n apps.sh
+bash -n mise.sh
+shellcheck apps.sh mise.sh
 ```
 
 If `shellcheck` is not installed, note that and still run the `bash -n` checks.

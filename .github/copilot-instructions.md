@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions
 
-Read `/home/runner/work/dotfiles-pi/dotfiles-pi/AGENTS.md` first for the full repository guidance.
+Read `AGENTS.md` first for the full repository guidance.
 `CLAUDE.md` should remain a symlink to `AGENTS.md`.
 
 ## Repo context
@@ -29,9 +29,10 @@ Read `/home/runner/work/dotfiles-pi/dotfiles-pi/AGENTS.md` first for the full re
 Run the smallest relevant checks for script changes:
 
 ```bash
-bash -n /home/runner/work/dotfiles-pi/dotfiles-pi/apps.sh
-bash -n /home/runner/work/dotfiles-pi/dotfiles-pi/mise.sh
-shellcheck /home/runner/work/dotfiles-pi/dotfiles-pi/apps.sh /home/runner/work/dotfiles-pi/dotfiles-pi/mise.sh
+cd <repo-root>
+bash -n apps.sh
+bash -n mise.sh
+shellcheck apps.sh mise.sh
 ```
 
 If `shellcheck` is unavailable, mention that and still run the syntax checks.
