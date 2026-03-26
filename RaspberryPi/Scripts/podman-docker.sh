@@ -60,7 +60,7 @@ EOF
   printf 'podman version: %s\n' "$(podman version --format json 2>/dev/null | head -c200 || echo unavailable)"
   printf 'podman-compose: %s\n' "$(command -v podman-compose || echo missing)"
   # Run docker-compose up if docker-compose.yml exists in current directory
-  [[ -f docker-compose.yml ]] && docker-compose up || echo "No docker-compose.yml found in current directory"
+  [[ -f docker-compose.yml ]] && podman-compose up || echo "No docker-compose.yml found in current directory"
 }
 setup-docker() {
   echo "Configuring Docker daemon..."
