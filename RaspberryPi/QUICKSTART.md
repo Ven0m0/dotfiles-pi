@@ -77,7 +77,7 @@ sudo ./dietpi-chroot.sh /path/to/image.img
 ## Next Steps
 
 1. Read [EXAMPLES.md](EXAMPLES.md) for advanced workflows
-2. Check [DIETPI_F2FS_GUIDE.md](../DIETPI_F2FS_GUIDE.md) for troubleshooting
+2. Check [DIETPI_F2FS_GUIDE.md](DIETPI_F2FS_GUIDE.md) for troubleshooting
 3. Customize with `dietpi-chroot.sh`
 
 ---
