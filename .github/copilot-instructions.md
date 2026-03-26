@@ -1,50 +1,45 @@
 # GitHub Copilot Instructions
 
-Read `AGENTS.md` first for the full repository guidance.
-`CLAUDE.md` should remain a symlink to `AGENTS.md`.
+`AGENTS.md` is the canonical agent guidance — read it for the full picture.
+`CLAUDE.md` must remain a symlink to `AGENTS.md`.
 
-## Repo context
+## Repo at a glance
 
-- Small Raspberry Pi / Debian dotfiles and bootstrap repository
-- Main working files are root-level Bash scripts plus lightweight docs
-- No package manifest, CI workflow, or automated test suite currently exists
+- Raspberry Pi / Debian bootstrap dotfiles and helper scripts
+- Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `PLAN.md` (future image-build automation)
+- `RaspberryPi/`: migrated scripts — F2FS helpers, update/cleanup scripts, dotfiles, reference docs
+- No CI, no test suite, no package manifest today
 
-## How to work in this repo
+## How to work here
 
-- Prefer small Bash or Markdown edits.
-- Keep scripts explicit, readable, and safe to rerun when practical.
+- Prefer small, targeted Bash or Markdown edits.
 - Use `rg` for discovery before editing unfamiliar files.
+- Keep scripts explicit, readable, and safe to rerun.
+- Do not implement items from `PLAN.md` unless explicitly asked.
 - Avoid broad refactors or new tooling unless explicitly requested.
 
 ## Bash expectations
 
-- Prefer `#!/usr/bin/env bash` for new scripts.
-- Prefer `set -euo pipefail` for multi-step scripts.
-- Quote variable expansions.
-- Favor official apt repositories and keyrings over opaque install commands.
-- Add brief comments before commands with machine-wide effects.
+- `#!/usr/bin/env bash` shebang.
+- `set -euo pipefail` for multi-step scripts.
+- Quote all variable expansions.
+- Prefer official apt keyrings over opaque install pipes.
+- Add brief comments before commands with system-wide effects.
 
 ## Validation
 
-Run the smallest relevant checks for script changes:
-
 ```bash
-cd <repo-root>
-bash -n apps.sh
-bash -n mise.sh
+bash -n apps.sh && bash -n mise.sh
 shellcheck apps.sh mise.sh
+# Also check any RaspberryPi/*.sh files you touch
 ```
 
-If `shellcheck` is unavailable, mention that and still run the syntax checks.
+Note if `shellcheck` is unavailable; still run `bash -n`.
 
-## Documentation guidance
+## Safety — never do this without explicit request
 
-- Update `README.md` when setup behavior changes.
-- Keep `TODO.md` for future work and references.
-- Keep repository-wide agent guidance in `AGENTS.md`, not duplicated here.
-
-## Avoid
-
-- secrets or machine-specific values
-- destructive system changes without explicit request
-- unrelated cleanup or restructuring
+- Hardcode usernames, hostnames, or machine-specific paths
+- Add secrets or tokens
+- Add destructive commands or remove packages/data
+- Change firewall, SSH, or network settings
+- Use opaque install pipes instead of apt keyrings
