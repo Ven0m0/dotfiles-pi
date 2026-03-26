@@ -54,7 +54,7 @@ sudo ./dietpi-chroot.sh /path/to/image.img
 ### Need Help?
 - [Complete Guide](DIETPI_F2FS_GUIDE.md) - Full documentation
 - [Examples](EXAMPLES.md) - Common use cases
-- [Issues](https://github.com/Ven0m0/Linux-OS/issues) - Report bugs
+- [Issues](https://github.com/Ven0m0/dotfiles-pi/issues) - Report bugs
 
 ## Features at a Glance
 
@@ -85,4 +85,4 @@ sudo ./dietpi-chroot.sh /path/to/image.img
 **Quick Links:**
 - [DietPi Website](https://dietpi.com)
 - [F2FS Docs](https://www.kernel.org/doc/html/latest/filesystems/f2fs.html)
-- [GitHub Repo](https://github.com/Ven0m0/Linux-OS)
+- [GitHub Repo](https://github.com/Ven0m0/dotfiles-pi)

@@ -86,6 +86,7 @@ update_packages() {
   if ! sudo apt-get update -y --allow-releaseinfo-change 2>/dev/null; then
     printf '%s\n' "APT update failed. Cleaning lists and retrying..."
     sudo rm -rf --preserve-root -- /var/lib/apt/lists/*
+    sudo apt-get update -y --allow-releaseinfo-change || printf '%s\n' "APT update still failed after cleaning lists." >&2
   fi
 
   if command -v -- apt-fast &>/dev/null; then

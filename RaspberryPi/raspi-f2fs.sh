@@ -8,6 +8,7 @@ export LC_ALL=C
 # --- Config & Helpers ---
 : "${BOOT_SIZE:=512M}" "${SSH:=0}" "${DRY:=0}" "${KEEP:=0}" "${NO_USB:=0}" "${NO_SZ:=0}" "${SHRINK:=0}"
 DIETPI_URL="https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Trixie.img.xz"
+MOUNTS=()
 R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' B=$'\e[34m' X=$'\e[0m'
 die() {
   printf "%b[ERR]%b %s\n" "$R" "$X" "$*" >&2

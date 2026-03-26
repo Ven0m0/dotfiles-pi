@@ -10,7 +10,7 @@
 # - Once applied during first run setup, the password is removed from this file, encrypted and stored to a safer location to be used by dietpi-software only.
 # - WARN: The default SSH server Dropbear does not support passwords over 100 bytes. Certain special characters, and such with accents, take 2 bytes.
 # - WARN: We cannot guarantee that all software options can handle special characters like $"|\.
-AUTO_SETUP_GLOBAL_PASSWORD=dietpi
+AUTO_SETUP_GLOBAL_PASSWORD=CHANGE_ME
 
 ##### Language/Regional options #####
 # Locale e.g.: "en_GB.UTF-8" / "de_DE.UTF-8" | One entry and UTF-8 ONLY!
@@ -35,16 +35,16 @@ AUTO_SETUP_NET_WIFI_COUNTRY_CODE=DE
 
 # Enter your static network details below, if applicable.
 AUTO_SETUP_NET_USESTATIC=0
-AUTO_SETUP_NET_STATIC_IP=192.168.178.86
+AUTO_SETUP_NET_STATIC_IP=192.168.X.X
 AUTO_SETUP_NET_STATIC_MASK=255.255.255.0
-AUTO_SETUP_NET_STATIC_GATEWAY=192.168.178.1
+AUTO_SETUP_NET_STATIC_GATEWAY=192.168.X.1
 AUTO_SETUP_NET_STATIC_DNS=1.1.1.1 1.0.0.1
 
 # Set to "1" to convert DHCP leased network settings into static settings automatically on first boot.
 AUTO_SETUP_DHCP_TO_STATIC=0
 
 # Hostname
-AUTO_SETUP_NET_HOSTNAME=pi3
+AUTO_SETUP_NET_HOSTNAME=pi
 
 # Force Ethernet speeds: 0=automatic speed | 10 = 10 Mbit/s | 100 = 100 Mbit/s etc.
 # - Use this when your Ethernet adapter has an unstable 1 Gbit/s link.
