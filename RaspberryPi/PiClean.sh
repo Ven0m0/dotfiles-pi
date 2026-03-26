@@ -123,6 +123,7 @@ parse_args() {
   while [[ $# -gt 0 ]]; do
     case $1 in
       --no-restart) DONT_RESTART_DOCKER_ENGINE=1 ;;
+      --drop-caches) DROP_CACHES=1 ;;
       -y | --yes) DONT_ASK_CONFIRMATION=1 ;;
       -h | --help)
         usage

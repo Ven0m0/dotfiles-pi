@@ -6,9 +6,9 @@
 
 ```bash
 mkdir -p ~/.local/bin
-curl -fsSL 'https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/Scripts/apkg.sh' -o ~/.local/bin/apkg && chmod +x ~/.local/bin/apkg
+curl -fsSL 'https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/Scripts/apkg.sh' -o ~/.local/bin/apkg && chmod +x ~/.local/bin/apkg
 ~/.local/bin/apkg --install
-source "${HOME%/}/.local/share/bash-completion/completions/apkg" &>/dev/null
+source "${HOME%/}/.local/share/bash-completion/completions/apt-fuzz" &>/dev/null
 ```
 
 [Debian minify](/RaspberryPi/Scripts/pi-minify.sh) -> [1](https://github.com/Freifunk-Nord/nord-minify_debian.sh/blob/master/nord-minify_debian.sh) [2](https://github.com/boxcutter/debian/blob/main/script/minimize.sh)
@@ -44,13 +44,13 @@ source "${HOME%/}/.local/share/bash-completion/completions/apkg" &>/dev/null
 Using `curl`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/Scripts/Docker-clean.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/Scripts/Docker-clean.sh | bash
 ```
 
 pass the `-y` flag to suppress interactive prompts. If you don't want to restart the Docker engine, pass the `--no-restart` flag.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/Scripts/Docker-clean.sh | bash -s -- -y --no-restart
+curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/Scripts/Docker-clean.sh | bash -s -- -y --no-restart
 
 ```
 

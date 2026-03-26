@@ -271,15 +271,21 @@ WORKDIR="$(mktemp -d)"
 cd "$WORKDIR"
 
 # Handle source (URL or local file)
-if [[ $SRC_URL =~ ^https?:// ]]; then
+if [[ $SRC_URL =~ ^https:// ]]; then
   src_archive="${SRC_URL##*/}"
   log "Downloading: $SRC_URL\n"
   curl -fL --retry 5 --retry-delay 2 -o "$src_archive" "$SRC_URL"
 
-  log "Decompressing xz...\n"
-  xz -dk "$src_archive"
-  SRC_IMG="${src_archive%.xz}"
-  [[ -f $SRC_IMG ]] || die "Decompressed .img not found: $SRC_IMG"
+  if [[ $src_archive == *.xz ]]; then
+    log "Decompressing xz...\n"
+    xz -dk "$src_archive"
+    SRC_IMG="${src_archive%.xz}"
+    [[ -f $SRC_IMG ]] || die "Decompressed .img not found: $SRC_IMG"
+  else
+    SRC_IMG="$src_archive"
+  fi
+elif [[ $SRC_URL =~ ^http:// ]]; then
+  die "Insecure HTTP source not allowed; use an https:// URL"
 elif [[ -f $SRC_URL ]]; then
   log "Using local file: $SRC_URL\n"
   if [[ $SRC_URL == *.xz ]]; then
@@ -295,9 +301,11 @@ fi
 
 # Prepare output destination
 if [[ -n $OUTPUT_DEVICE ]]; then
-  # Flash to device mode
+  # Flash to device mode: write source image onto the device first
   [[ -b $OUTPUT_DEVICE ]] || die "Device not found: $OUTPUT_DEVICE"
-  log "Will flash to device: $OUTPUT_DEVICE\n"
+  log "Flashing source image to device: $OUTPUT_DEVICE\n"
+  dd if="$SRC_IMG" of="$OUTPUT_DEVICE" bs=4M conv=fsync status=progress || die "dd failed writing to $OUTPUT_DEVICE"
+  sync
   OUT_IMG="$OUTPUT_DEVICE"
 else
   # Create image file mode

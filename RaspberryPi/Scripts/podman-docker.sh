@@ -9,7 +9,7 @@ cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
 yes | sudo apt-get update -y --fix-missing
 yes | sudo apt-get upgrade -y
 
-setup-podman() {
+setup_podman() {
   sudo apt-get install -y podman podman-docker
   sudo touch /etc/containers/nodocker
   sudo systemctl daemon-reload
@@ -62,7 +62,7 @@ EOF
   # Run docker-compose up if docker-compose.yml exists in current directory
   [[ -f docker-compose.yml ]] && podman-compose up || echo "No docker-compose.yml found in current directory"
 }
-setup-docker() {
+setup_docker() {
   echo "Configuring Docker daemon..."
   sudo mkdir -p /etc/docker
   sudo tee /etc/docker/daemon.json >/dev/null <<'EOF'
@@ -94,4 +94,4 @@ EOF
   echo "Docker configuration complete!"
   echo "Note: You may need to log out and back in for group changes to take effect."
 }
-setup-podman || setup-docker
+setup_podman || setup_docker

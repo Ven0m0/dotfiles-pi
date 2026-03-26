@@ -125,8 +125,14 @@ shrink_image() {
     parttype="primary"
   fi
   LOOP_DEV=$(losetup -f --show -o "$partstart" "$IMG_FILE") || die "Failed to setup loop device"
-  check_filesystem
-  local tune_out
+  local tune_out fs_type
+  fs_type=$(blkid -o value -s TYPE "$LOOP_DEV" 2>/dev/null || echo "")
+  if [[ "$fs_type" != "ext4" ]]; then
+    log "Filesystem type '$fs_type' not supported for shrinking; only ext4 is supported"
+    losetup -d "$LOOP_DEV" &>/dev/null
+    return
+  fi
+  e2fsck -fy "$LOOP_DEV" || die "Filesystem check failed"
   tune_out=$(tune2fs -l "$LOOP_DEV") || die "tune2fs failed"
   currentsize=$(awk -F: '/^Block count:/{gsub(" ","",$2);print $2}' <<<"$tune_out")
   blocksize=$(awk -F: '/^Block size:/{gsub(" ","",$2);print $2}' <<<"$tune_out")
