@@ -52,7 +52,7 @@ sudo ./dietpi-chroot.sh /path/to/image.img
 ```
 
 ### Need Help?
-- [Complete Guide](../DIETPI_F2FS_GUIDE.md) - Full documentation
+- [Complete Guide](DIETPI_F2FS_GUIDE.md) - Full documentation
 - [Examples](EXAMPLES.md) - Common use cases
 - [Issues](https://github.com/Ven0m0/Linux-OS/issues) - Report bugs
 
