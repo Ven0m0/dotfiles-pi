@@ -31,20 +31,27 @@ RaspberryPi/
 ### Updates
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/update.sh | bash
 ```
 
 ### Cleaning
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/PiClean.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/PiClean.sh | bash
 ```
 
-### Settings todo
+### Recommended post-install settings
 
-```markdown
-net.ipv4.ip_forward=1
-https://gitlab.com/volian/nala/-/blob/main/docs/nala-fetch.8.rst?ref_type=heads
+Enable IPv4 forwarding (required for VPN/routing):
+```bash
+echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-ip-forward.conf
+sudo sysctl -p /etc/sysctl.d/99-ip-forward.conf
+```
+
+Use [nala](https://gitlab.com/volian/nala) as a friendlier apt front-end:
+```bash
+sudo apt install nala
+sudo nala fetch   # choose fastest mirrors
 ```
 
 <details>

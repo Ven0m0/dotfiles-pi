@@ -49,14 +49,14 @@ EOF
 }
 
 # Parse args
-ASSUME_YES=0
+AUTO_YES=0
 while (($#)); do
   case "$1" in
     -b | --branch)
       KERNEL_BRANCH=${2:?}
       shift
       ;;
-    -y | --yes) ASSUME_YES=1 ;;
+    -y | --yes) AUTO_YES=1 ;;
     -h | --help) usage ;;
     *) die "Unknown option: $1" ;;
   esac
@@ -70,7 +70,7 @@ main() {
   ((EUID == 0)) || die "Must run as root"
 
   # Confirm destructive operation
-  if ((!ASSUME_YES)); then
+  if ((!AUTO_YES)); then
     warn "This will build and install a new kernel, then REBOOT!"
     confirm "Proceed with kernel build?" || {
       log "Aborted"
@@ -126,7 +126,14 @@ main() {
 
   log "${GRN}Kernel installed successfully${DEF}"
 
-  # Reboot with countdown
+  _confirm_reboot() {
+    if [[ ${AUTO_YES:-0} -eq 1 || ! -t 0 ]]; then
+      return 0
+    fi
+    read -r -p "$(warn 'Reboot now to load the new kernel? [y/N]: ')" _ans
+    [[ ${_ans,,} == y ]] || { log "Reboot skipped. Run: sudo reboot"; exit 0; }
+  }
+  _confirm_reboot
   warn "Rebooting in 10 seconds... (Ctrl+C to cancel)"
   sleep 10
   systemctl reboot -q || reboot

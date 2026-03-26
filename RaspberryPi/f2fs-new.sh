@@ -430,9 +430,12 @@ fi
 
 printf '%s\n' "$cmd" >"$CMDLINE"
 
-# Basic warning: fsck.f2fs may not exist; not fatal for boot
+# f2fs-tools provides fsck.f2fs; required by systemd-fsck@.service on first boot
 if [[ ! -x "$DST_MNT_ROOT/sbin/fsck.f2fs" && ! -x "$DST_MNT_ROOT/usr/sbin/fsck.f2fs" ]]; then
-  log "WARN: fsck.f2fs not found in rootfs. Boot should still work; fsck service (if any) may complain.\n"
+  log "fsck.f2fs not found — attempting to install f2fs-tools into rootfs …\n"
+  if ! chroot "$DST_MNT_ROOT" apt-get install -y --no-install-recommends f2fs-tools 2>/dev/null; then
+    log "WARN: f2fs-tools install failed. Boot should still work; fsck service (if any) may complain.\n"
+  fi
 fi
 
 sync
