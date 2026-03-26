@@ -31,7 +31,7 @@
 ```bash
 bash -n apps.sh && bash -n mise.sh
 shellcheck apps.sh mise.sh
-# Also check any RaspberryPi/*.sh files you touch
+# Also check any RaspberryPi/*.sh files you touch (e.g., bash -n RaspberryPi/f2fs-new.sh)
 ```
 
 Note if `shellcheck` is unavailable; still run `bash -n`.
