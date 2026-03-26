@@ -198,8 +198,11 @@ main() {
   sudo find /var/log /var/crash /var/cache/apt \
     \( -path "/var/log/*.log" -o -path "/var/crash/core.*" -o -path "/var/cache/apt/*.bin" \) \
     -type f -mtime +3 -delete 2>/dev/null || :
-  sync
-  printf '3' | sudo tee /proc/sys/vm/drop_caches &>/dev/null
+  if (( DROP_CACHES )); then
+    printf '%s\n' "Dropping kernel caches (per --drop-caches)..."
+    sync
+    printf '3' | sudo tee /proc/sys/vm/drop_caches &>/dev/null
+  fi
   printf '%s\n' "Clearing DietPi..."
   load_dietpi_globals
   run_dietpi_cleanup
