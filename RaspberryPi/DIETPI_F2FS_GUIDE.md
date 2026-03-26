@@ -221,4 +221,4 @@ F2FS provides:
 For issues, see:
 - F2FS documentation: https://www.kernel.org/doc/html/latest/filesystems/f2fs.html
 - DietPi forums: https://dietpi.com/forum/
-- Project repo: https://github.com/Ven0m0/Linux-OS
+- Project repo: https://github.com/Ven0m0/dotfiles-pi
