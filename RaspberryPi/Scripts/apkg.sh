@@ -35,11 +35,11 @@ FINDER_OPTS=(--layout=reverse-list --no-hscroll)
 # Manager detection
 declare -A MANAGERS=([apt]=1)
 has nala && MANAGERS[nala]=1
-has apt-fast && MANAGERS[apt - fast]=1
+has apt-fast && MANAGERS[apt-fast]=1
 PRIMARY_MANAGER="${APT_FUZZ_MANAGER:-apt}"
 [[ -z ${MANAGERS[$PRIMARY_MANAGER]:-} ]] && PRIMARY_MANAGER=apt-get
 [[ -n ${MANAGERS[nala]:-} ]] && PRIMARY_MANAGER=nala
-[[ -z ${MANAGERS[nala]:-} && -n ${MANAGERS[apt - fast]:-} ]] && PRIMARY_MANAGER=apt-fast
+[[ -z ${MANAGERS[nala]:-} && -n ${MANAGERS[apt-fast]:-} ]] && PRIMARY_MANAGER=apt-fast
 byte_to_human() {
   local bytes="${1:-0}" i=0 pow=1
   local -a units=(B K M G T)
