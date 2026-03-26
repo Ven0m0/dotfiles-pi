@@ -154,7 +154,7 @@ docker_cleanup() {
   docker system prune -af --volumes
   # Separately clean builder cache
   DOCKER_BUILDKIT=1 docker builder prune -af
-  docker-remove-stale-assets || :
+  has docker-remove-stale-assets && docker-remove-stale-assets || :
   printf '%s\n' "👉 Docker disk usage (after cleanup)"
   docker system df || :
   restart_docker_engine
