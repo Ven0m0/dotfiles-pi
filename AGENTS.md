@@ -22,6 +22,7 @@ dotfiles-pi/
 ├── PLAN.md                ← image-build automation plan (future work)
 ├── README.md              ← repo overview
 ├── TODO.md                ← future work and migration notes
+├── custom-instructions/   ← shared custom instruction profiles
 ├── renovate.json          ← Renovate dependency-update config
 ├── apps.sh                ← apt/PPA bootstrap helper
 ├── mise.sh                ← installs mise via apt keyring + apt repo
