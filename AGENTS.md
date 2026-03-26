@@ -71,8 +71,7 @@ Validate changes with the smallest relevant checks:
 
 ```bash
 # Syntax check root scripts
-bash -n apps.sh
-bash -n mise.sh
+bash -n apps.sh && bash -n mise.sh
 shellcheck apps.sh mise.sh
 
 # Syntax check RaspberryPi scripts when edited
