@@ -219,7 +219,7 @@ options usbcore autosuspend=10'
   # Combine tune2fs calls (75% reduction in filesystem operations)
   [[ -n $root_dev ]] && {
     sudo tune2fs -o journal_data_writeback \
-      -O ^has_journal,fast_commit,^metadata_csum,^quota \
+      -O fast_commit,^metadata_csum,^quota \
       -c 0 -i 0 "$root_dev" 2>/dev/null || :
   }
   [[ -n $home_dev && $home_dev != "$root_dev" ]] && {
