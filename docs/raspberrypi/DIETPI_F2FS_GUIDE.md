@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to convert DietPi (which uses ext4 by default) to F2FS for improved SD card performance and longevity.
+This guide explains how to convert DietPi (which uses ext4 by default) to F2FS on supported Raspberry Pi systems.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ This guide explains how to convert DietPi (which uses ext4 by default) to F2FS f
 
 ## Workflow
 
-### Method 1: Interactive Mode (Easiest)
+### Method 1: Interactive Mode
 
 Use fzf-based interactive selection for source and destination:
 
@@ -78,9 +78,9 @@ sudo ./RaspberryPi/f2fs-new.sh --src ~/DietPi.img.xz --device /dev/mmcblk0
 sudo ./RaspberryPi/f2fs-new.sh --device /dev/mmcblk0
 ```
 
-### Method 4: Advanced - Using raspi-f2fs.sh
+### Method 4: Using raspi-f2fs.sh
 
-For advanced users who want more control over the flashing process:
+Use this path if you need more control over the flashing process:
 
 ```bash
 # Interactive mode with fzf selection
@@ -112,17 +112,17 @@ sudo ./RaspberryPi/raspi-f2fs.sh -i dietpi -d /dev/mmcblk0 -s
 ### DietPi Detection
 - Automatically detects DietPi installations
 - Identifies Pi model (3/4/5) and DietPi version
-- Applies DietPi-specific optimizations
+- Applies DietPi-specific settings
 
 ### Config Management
 - **Backed up:** `/boot/dietpi/.installed`, `dietpi.txt`, network configs, hostname
 - **Removed:** ext4 journal settings, ext4-specific cron jobs/systemd timers
 - **Updated:** fstab with F2FS mount options, cmdline.txt with rootfstype=f2fs
 
-### F2FS Optimization
+### F2FS Settings
 - Compression enabled: `compress_algorithm=zstd`
 - Advanced features: `compress_chksum,atgc,gc_merge`
-- Optimal mount options for SD card longevity
+- Default mount options used by the script
 
 ### Safety Features
 - Pre-conversion verification of F2FS kernel support
@@ -201,13 +201,12 @@ Both scripts support:
 - Local files: `/path/to/image.img` or `image.img.xz`
 - Shortcut: `dietpi` (downloads latest DietPi Trixie)
 
-## Performance Benefits
+## Filesystem Notes
 
-F2FS provides:
-- **Better SD card longevity:** Optimized for flash storage
-- **Compression:** Saves space and reduces writes (if enabled)
-- **Faster random I/O:** Better than ext4 on SD cards
-- **Garbage collection:** Automatic flash-friendly cleanup
+F2FS in this workflow provides:
+- Compression support when the kernel supports it
+- Mount options tuned for the generated images
+- Native garbage collection behavior from the filesystem
 
 ## Known Limitations
 
