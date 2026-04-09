@@ -1,277 +1,67 @@
-#
+# Raspberry Pi Scripts
 
-<img height="30" src="https://cdn.freebiesupply.com/logos/large/2x/raspberry-pi-logo-png-transparent.png" alt="Pi">
+This section covers the Raspberry Pi and DietPi scripts that remain in active use in this repository.
 
-Raspberry Pi Related Stuff
-
-## Folder Structure
+## Layout
 
 ```text
 RaspberryPi/
-├── docs/              # Documentation and reference files
-│   ├── Commands.txt   # Common command reference
-│   ├── dietpi.txt     # DietPi configuration notes
-│   ├── pihole.txt     # Pi-hole configuration
-│   ├── sqlite-reference.txt  # SQLite optimization tips
-│   └── REFERENCES.md  # Reference notes and tool links
-├── Scripts/           # Executable scripts
-│   ├── setup.sh       # System setup automation
-│   ├── podman-docker.sh # Podman/Docker helper
-│   ├── pi-minify.sh   # System minification
-│   └── ...
-├── dots/              # Dotfiles and configurations
 ├── PiClean.sh         # System cleanup script
-├── update.sh          # System update script
-├── raspi-f2fs.sh      # F2FS filesystem conversion
-└── README.md          # This file
+├── Scripts/
+│   ├── apkg.sh        # Interactive APT package helper
+│   ├── blocklist.sh   # hblock wrapper
+│   ├── Kbuild.sh      # Kernel build helper
+│   ├── pi-minify.sh   # System minimization helper
+│   ├── pi_hole_updater.sh
+│   ├── podman-docker.sh
+│   ├── setup.sh       # Initial system setup
+│   └── sqlite-tune.sh
+├── dietpi-chroot.sh   # DietPi image chroot helper
+├── dots/              # Dotfiles and config snippets
+├── f2fs-new.sh        # Image-to-F2FS conversion helper
+├── raspi-f2fs.sh      # Device flashing helper
+└── update.sh          # System update script
 ```
 
 ## Quick Start Scripts
 
-### Updates
+### Update
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/update.sh | bash
 ```
 
-### Cleaning
+### Clean
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/PiClean.sh | bash
 ```
 
-### Recommended post-install settings
+## Recommended Post-Install Checks
 
-Enable IPv4 forwarding (required for VPN/routing):
+- Use `dietpi-config` to set hostname, locale, timezone, and other DietPi-managed options.
+- Enable IPv4 forwarding only on systems that route traffic:
+
 ```bash
 echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-ip-forward.conf
 sudo sysctl -p /etc/sysctl.d/99-ip-forward.conf
 ```
 
-Use [nala](https://gitlab.com/volian/nala) as a friendlier apt front-end:
+- Verify SSH key-based access before disabling password authentication.
+- If you prefer `nala`, install it and refresh mirror selection:
+
 ```bash
 sudo apt install nala
-sudo nala fetch   # choose fastest mirrors
+sudo nala fetch
 ```
 
-<details>
+## F2FS Documentation
 
-<summary><b>Tools</b></summary>
+- [QUICKSTART.md](QUICKSTART.md)
+- [DIETPI_F2FS_GUIDE.md](DIETPI_F2FS_GUIDE.md)
+- [EXAMPLES.md](EXAMPLES.md)
+- Canonical DietPi automation template: [../../dietpi.txt](../../dietpi.txt)
 
-- [Pi-Apps-bash](https://github.com/Itai-Nelken/PiApps-terminal_bash-edition)
+## Reference Links
 
-```bash
-wget -qO- https://raw.githubusercontent.com/Itai-Nelken/PiApps-terminal_bash-edition/main/install.sh | bash
-```
-
-- [cylon-deb](https://github.com/gavinlyonsrepo/cylon-deb)
-
-</details>
-
-<details>
-
-<summary><b>DietPi/Raspberry Pi OS on F2FS</b></summary>
-
-Convert DietPi or Raspberry Pi OS from ext4 to F2FS for better SD card performance and longevity.
-
-### Quick Start
-
-**Interactive Mode (Easiest):**
-```bash
-cd RaspberryPi
-sudo ./f2fs-new.sh -i
-```
-
-**Direct Flash:**
-```bash
-# Download latest DietPi and flash to device
-sudo ./f2fs-new.sh --device /dev/mmcblk0
-
-# Use local image
-sudo ./f2fs-new.sh --src ~/DietPi.img.xz --device /dev/mmcblk0
-```
-
-**Create Image File:**
-```bash
-# Download and convert to F2FS image
-sudo ./f2fs-new.sh --out ~/dietpi-f2fs.img
-
-# Flash later
-sudo dd if=~/dietpi-f2fs.img of=/dev/mmcblk0 bs=4M conv=fsync status=progress
-```
-
-### Scripts
-
-| Script | Purpose | Best For |
-|--------|---------|----------|
-| `f2fs-new.sh` | Convert images to F2FS | Image creation, direct flashing |
-| `raspi-f2fs.sh` | Advanced F2FS flasher | Custom boot size, shrinking, SSH |
-| `dietpi-chroot.sh` | Post-conversion customization | Initramfs regen, package install |
-
-### Features
-
-✅ **DietPi Detection** - Auto-detects and handles DietPi-specific configs
-✅ **Interactive Mode** - fzf-based selection for source and destination
-✅ **F2FS Optimization** - Compression, ATGC, garbage collection
-✅ **Config Cleanup** - Removes ext4-specific settings automatically
-✅ **Verification** - Post-conversion checks ensure bootability
-
-### Documentation
-
-- **[Complete Guide](DIETPI_F2FS_GUIDE.md)** - Full documentation with troubleshooting
-- **[Examples](EXAMPLES.md)** - Common use cases and workflows
-
-### Requirements
-
-- Raspberry Pi 3, 4, or 5
-- Kernel with F2FS support (most modern kernels have this)
-- Tools: `mkfs.f2fs`, `losetup`, `rsync`, `fzf` (for interactive mode)
-
-### Further Reading
-
-- [DietPi Documentation](https://dietpi.com/docs)
-- [F2FS Kernel Docs](https://www.kernel.org/doc/html/latest/filesystems/f2fs.html)
-- Original implementations: [aarontc](https://github.com/aarontc/raspbian-f2fs), [d-a-v](https://github.com/d-a-v/raspbian-f2fs), [timothybrown](https://github.com/timothybrown/raspbian-f2fs)
-
-</details>
-
-<details>
-
-<summary><b>DietPi Server Stacks</b></summary>
-
-- Raspberry pi 4: LEMP (Nginx, MariaDB, PHP)
-- Raspberry pi 3: LLSP (Lighttpd, SQLite, PHP)
-
-Reference Documentation:
-
-- [Nginx](https://docs.nginx.com/nginx/admin-guide)
-- [Lighttpd](https://www.lighttpd.net)
-- [MariaDB](https://mariadb.org/documentation/#getting-started)
-- [SQLite](https://www.sqlite.org/quickstart.html)
-
-See the canonical [dietpi.txt](../../dietpi.txt) template for detailed DietPi automation settings.
-
-</details>
-
-<details>
-
-<summary><b>CasaOS</b></summary>
-
-- Install [CasaOS](https://casaos.zimaspace.com)
-
-```bash
-sudo casaos-uninstall
-curl -fsSL https://get.casaos.io | sudo bash
-```
-
-- Update
-
-```bash
-curl -fsSL https://get.casaos.io/update | sudo bash
-```
-
-</details>
-
-<details>
-
-<summary><b>Other selfhost tools/OS's</b></summary>
-
-- [DietPi](https://dietpi.com)
-- [NextcloudPi](https://github.com/nextcloud/nextcloudpi)
-- [Runtipi](https://runtipi.io)
-
-<details>
-
-<summary><b>Install</b></summary>
-
-```bash
-curl -L https://setup.runtipi.io | bash
-```
-
-</details>
-
-- [cosmos](https://cosmos-cloud.io)
-
-<details>
-
-<summary><b>Install</b></summary>
-
-[https://cosmos-cloud.io/doc/1%20index/#automatic-installation](https://cosmos-cloud.io/doc/1%20index/#automatic-installation)
-
-```bash
-# IF YOU NEED TO CHANGE THE PORTS, DO IT BEFORE RUNNING THE COMMAND
-# You can overwrite any other env var by adding them here
-export COSMOS_HTTP_PORT=80 COSMOS_HTTPS_PORT=443
-
-# You can run a dry run to see what will be installed
-curl -fsSL https://cosmos-cloud.io/get.sh | sudo -E bash -s -- --dry-run
-
-# If you are happy with the result, you can run the command
-curl -fsSL https://cosmos-cloud.io/get.sh | sudo -E bash -s
-```
-
-One liner:
-
-```bash
-env COSMOS_HTTP_PORT=80 COSMOS_HTTPS_PORT=443 curl -fsSL https://cosmos-cloud.io/get.sh | sudo -E bash -s
-```
-
-</details>
-
-- [yunohost](https://yunohost.org)
-
-- [Homepage docker](https://github.com/gethomepage/homepage)
-
-<details>
-
-<summary><b>Install</b></summary>
-
-```bash
-docker run --name homepage \
-  -e HOMEPAGE_ALLOWED_HOSTS=gethomepage.dev \
-  -e PUID=1000 \
-  -e PGID=1000 \
-  -p 3000:3000 \
-  -v /path/to/config:/app/config \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  --restart unless-stopped \
-  ghcr.io/gethomepage/homepage:latest
-```
-
-</details>
-
-- [ShellHub](https://www.shellhub.io)
-
-- [cloudflare tunnel](https://github.com/phipcode/phiptechblog/tree/main/cloudflaretunnel)
-
-</details>
-
-<details>
-
-<summary><b>Self-hosting services</b></summary>
-
-- [Nextcloud](https://docs.nextcloud.com/server/latest/admin_manual/contents.html)
-- [Owncloud](https://doc.owncloud.com/server/next/)
-- [Web-filebrowser](https://filebrowser.org/index.html)
-- [NFS/Samba](https://dietpi.com/docs/software/file_servers)
-- [Gitea](https://docs.gitea.com/)
-
-<details>
-
-<summary><b>DNS Adblock/OS's</b></summary>
-
-- [Pihole](https://pi-hole.net)
-- [Adguard](https://github.com/AdguardTeam/AdGuardHome)
-- [Technitium](https://technitium.com/dns)
-- [Blocky](https://0xerr0r.github.io/blocky/latest)
-- [Stubby](https://github.com/getdnsapi/stubby)
-
-</details>
-
-<details>
-
-<summary><b>Resources</b></summary>
-
-- [Awesome-selfhosted](https://awesome-selfhosted.net/tags/web-servers.html)
-
-</details>
+- [reference/REFERENCES.md](reference/REFERENCES.md)

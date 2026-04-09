@@ -5,7 +5,7 @@
 This document describes the high-level plan for building custom DietPi OS images for Raspberry Pi using
 a GitHub Actions–based automated pipeline. The goal is to produce reproducible, pre-configured images
 that bake in the dotfiles, packages, and system tuning from this repository so a freshly flashed card
-boots straight into a ready-to-use environment.
+boots with the expected repository defaults.
 
 ---
 
@@ -18,9 +18,9 @@ The following projects inform the tooling choices and workflow design:
 | [MichaIng/DietPi](https://github.com/MichaIng/DietPi) | Official DietPi build scripts and `dietpi.txt` automation config — canonical reference for DietPi-specific customisation hooks |
 | [RPi-Distro/pi-gen](https://github.com/RPi-Distro/pi-gen) | Stage-based Raspberry Pi OS image builder; the `pi-gen-action` GitHub Action wraps it for CI use |
 | [tolstoyevsky/pieman](https://github.com/tolstoyevsky/pieman) | Python-based, YAML-configured image builder; useful reference for cross-compilation patterns |
-| [Nature40/pimod](https://github.com/Nature40/pimod) | Pifile (Dockerfile-style) image modifier; runs inside QEMU — **primary customisation driver** for this repo |
+| [Nature40/pimod](https://github.com/Nature40/pimod) | Pifile (Dockerfile-style) image modifier; runs inside QEMU and is the main customization tool for this repo |
 | [jmcerrejon/PiKISS](https://github.com/jmcerrejon/PiKISS) | Curated script library for Pi software installs; good reference for per-package install recipes |
-| [heeplr/rpi-cookstrap](https://github.com/heeplr/rpi-cookstrap) | Modular bash-plugin bootstrap system; reference for composable pre-first-boot setup patterns |
+| [heeplr/rpi-cookstrap](https://github.com/heeplr/rpi-cookstrap) | Modular bash-plugin bootstrap system; reference for pre-first-boot setup patterns |
 | [gitbls/sdm](https://github.com/gitbls/sdm) | System Definition Manager — plugin-based image customiser with first-boot service; reference for pre-seeding and phase-separation patterns |
 
 ---

@@ -1,35 +1,37 @@
 # DietPi F2FS Quick Start
 
-## 1-Minute Setup
+## Setup
 
-### Option A: Interactive (Easiest)
+### Option A: Interactive
+
 ```bash
 cd RaspberryPi
 sudo ./f2fs-new.sh -i
 ```
-Follow the prompts to select source and destination.
 
-### Option B: One Command
+### Option B: Flash Directly
+
 ```bash
-# Download latest DietPi and flash to SD card
 sudo ./RaspberryPi/f2fs-new.sh --device /dev/mmcblk0
 ```
 
-### Option C: Create Image First
-```bash
-# Create F2FS image
-sudo ./RaspberryPi/f2fs-new.sh --out ~/dietpi-f2fs.img
+### Option C: Create an Image First
 
-# Flash to SD card
+```bash
+sudo ./RaspberryPi/f2fs-new.sh --out ~/dietpi-f2fs.img
 sudo dd if=~/dietpi-f2fs.img of=/dev/mmcblk0 bs=4M conv=fsync status=progress
 ```
 
 ## First Boot Checklist
 
-1. ✅ Insert SD card into Raspberry Pi
-2. ✅ Connect HDMI/serial console (recommended)
-3. ✅ Power on
-4. ✅ Verify boot: `mount | grep "on / type f2fs"`
+1. Insert the SD card into the Raspberry Pi.
+2. Connect a local console if you want to watch first boot.
+3. Boot the system.
+4. Verify the root filesystem:
+
+```bash
+mount | grep 'on / type f2fs'
+```
 
 ## Common Commands
 
@@ -44,45 +46,14 @@ sudo dd if=~/dietpi-f2fs.img of=/dev/mmcblk0 bs=4M conv=fsync status=progress
 
 ## Troubleshooting
 
-### Boot Fails?
+If the image does not boot, regenerate initramfs:
+
 ```bash
-# Regenerate initramfs
 sudo ./dietpi-chroot.sh /path/to/image.img
-# Or: sudo ./dietpi-chroot.sh /dev/mmcblk0p2
 ```
-
-### Need Help?
-- [Complete Guide](DIETPI_F2FS_GUIDE.md) - Full documentation
-- [Examples](EXAMPLES.md) - Common use cases
-- [Issues](https://github.com/Ven0m0/dotfiles-pi/issues) - Report bugs
-
-## Features at a Glance
-
-✅ Interactive fzf selection
-✅ Auto-detects DietPi
-✅ F2FS optimization (compression + garbage collection)
-✅ Removes ext4-specific configs
-✅ Supports Pi 3, 4, 5
-✅ Direct device flashing or image creation
-✅ Post-conversion verification
-
-## Performance Benefits
-
-| Metric | ext4 | F2FS | Improvement |
-|--------|------|------|-------------|
-| Random I/O | Baseline | +30-50% | Better |
-| Write endurance | Baseline | +2-3x | Much better |
-| Space efficiency | Baseline | +10-20% | Better (with compression) |
 
 ## Next Steps
 
-1. Read [EXAMPLES.md](EXAMPLES.md) for advanced workflows
-2. Check [DIETPI_F2FS_GUIDE.md](DIETPI_F2FS_GUIDE.md) for troubleshooting
-3. Customize with `dietpi-chroot.sh`
-
----
-
-**Quick Links:**
-- [DietPi Website](https://dietpi.com)
-- [F2FS Docs](https://www.kernel.org/doc/html/latest/filesystems/f2fs.html)
-- [GitHub Repo](https://github.com/Ven0m0/dotfiles-pi)
+- Read [DIETPI_F2FS_GUIDE.md](DIETPI_F2FS_GUIDE.md) for detailed notes.
+- Read [EXAMPLES.md](EXAMPLES.md) for additional command patterns.
+- Review [../../dietpi.txt](../../dietpi.txt) before first boot automation.

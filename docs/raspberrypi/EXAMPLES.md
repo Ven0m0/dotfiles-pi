@@ -2,7 +2,7 @@
 
 ## Quick Start Examples
 
-### 1. Interactive Mode (Recommended for Beginners)
+### 1. Interactive Mode
 
 **Scenario:** First-time user wants to convert DietPi to F2FS
 
@@ -22,7 +22,7 @@ sudo ./f2fs-new.sh -i
 - Downloads latest DietPi Trixie image
 - Converts to F2FS
 - Flashes directly to SD card
-- Ready to boot
+- Produces a bootable image
 
 ### 2. Create F2FS Image for Later Use
 
@@ -78,7 +78,7 @@ sudo ./f2fs-new.sh \
   --out ~/dietpi-nocomp.img \
   --root-opts "defaults,noatime,atgc,gc_merge"
 
-# Maximum performance (aggressive GC)
+# Aggressive GC profile
 sudo ./f2fs-new.sh \
   --out ~/dietpi-perf.img \
   --root-opts "compress_algorithm=zstd,atgc,gc_merge,background_gc=on,gc_urgent=high"
