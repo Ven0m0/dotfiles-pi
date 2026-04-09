@@ -10,6 +10,7 @@
 # - Once applied during first run setup, the password is removed from this file, encrypted and stored to a safer location to be used by dietpi-software only.
 # - WARN: The default SSH server Dropbear does not support passwords over 100 bytes. Certain special characters, and such with accents, take 2 bytes.
 # - WARN: We cannot guarantee that all software options can handle special characters like $"|\.
+# - This repository's build workflow refuses to build while CHANGE_ME is left in place.
 AUTO_SETUP_GLOBAL_PASSWORD=CHANGE_ME
 
 ##### Language/Regional options #####
@@ -69,6 +70,7 @@ AUTO_UNMASK_LOGIND=1
 # - Add as many APT package names as you wish, separated by space.
 # - They will be installed after dietpi-software options and before the script defined via AUTO_SETUP_CUSTOM_SCRIPT_EXEC (see below) is executed.
 # - E.g. the following (without the leading "#") will install the APT packages iotop, iptables and xz-utils:
+# - This pinned list mirrors apps.sh for the image pipeline; gnupg provides the gpg tooling and rust-sd is intentionally left out of the base image.
 AUTO_SETUP_APT_INSTALLS=aria2 bat btrfs-progs ca-certificates curl fd-find f2fs-tools fzf gnupg lsb-release nala ripgrep ugrep wget xz-utils zram-tools zstd
 
 # Custom Script (pre-networking and pre-DietPi install)
