@@ -149,7 +149,7 @@ Reference Documentation:
 - [MariaDB](https://mariadb.org/documentation/#getting-started)
 - [SQLite](https://www.sqlite.org/quickstart.html)
 
-See [docs/dietpi.txt](docs/dietpi.txt) for detailed DietPi configuration
+See the canonical [dietpi.txt](../../dietpi.txt) template for detailed DietPi automation settings.
 
 </details>
 

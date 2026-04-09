@@ -22,7 +22,9 @@ dotfiles-pi/
 ├── CLAUDE.md              ← symlink → AGENTS.md
 ├── docs/
 │   ├── PLAN.md            ← image-build automation plan (future work)
-│   └── TODO.md            ← future work and migration notes
+│   └── raspberrypi/
+│       ├── README.md / QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md
+│       └── reference/REFERENCES.md
 ├── README.md              ← repo overview
 ├── custom-instructions/   ← shared custom instruction profiles
 ├── renovate.json          ← Renovate dependency-update config
@@ -34,9 +36,6 @@ dotfiles-pi/
 │       └── build-image.yml  ← GitHub Actions DietPi image build/release workflow
 ├── .claude/
 │   └── skills/server-management/SKILL.md  ← generic Claude skill (not repo policy)
-│   └── raspberrypi/
-│       ├── README.md / QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md
-│       └── reference/REFERENCES.md
 └── RaspberryPi/           ← scripts migrated from Ven0m0/Linux-OS
     ├── f2fs-new.sh        ← F2FS conversion for SD card longevity
     ├── raspi-f2fs.sh      ← alternative F2FS helper
@@ -90,7 +89,6 @@ If `shellcheck` is not installed, note that and still run the `bash -n` checks.
 ## Documentation expectations
 
 - Update `README.md` when setup behavior or repository purpose changes.
-- Keep `docs/TODO.md` focused on future work, references, and migration notes.
 - Keep `docs/PLAN.md` as a high-level plan; do not expand it with implementation details unless asked.
 - Keep long-lived agent instructions centralized in `AGENTS.md`.
 
