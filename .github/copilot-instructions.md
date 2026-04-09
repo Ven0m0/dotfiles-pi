@@ -6,7 +6,8 @@
 ## Repo at a glance
 
 - Raspberry Pi / Debian bootstrap dotfiles and helper scripts
-- Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `Pifile`, `dietpi.txt`, `PLAN.md`
+- Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `Pifile`, `dietpi.txt`
+- Planning docs: `docs/PLAN.md`, `docs/TODO.md`
 - `RaspberryPi/`: migrated scripts — F2FS helpers, update/cleanup scripts, dotfiles, reference docs
 - GitHub Actions `build-image.yml` builds custom DietPi images; there is still no test suite or package manifest today
 
@@ -15,7 +16,7 @@
 - Prefer small, targeted Bash or Markdown edits.
 - Use `rg` for discovery before editing unfamiliar files.
 - Keep scripts explicit, readable, and safe to rerun.
-- Do not implement items from `PLAN.md` unless explicitly asked.
+- Do not implement items from `docs/PLAN.md` unless explicitly asked.
 - Avoid broad refactors or new tooling unless explicitly requested.
 
 ## Bash expectations

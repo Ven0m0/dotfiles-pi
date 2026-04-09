@@ -6,7 +6,7 @@ Personal Raspberry Pi / Debian bootstrap dotfiles and helper scripts.
 Bash-first repo with a flat root layout and a `RaspberryPi/` subtree of migrated scripts.
 No application framework or package manager manifest exists today.
 A GitHub Actions workflow now builds pinned custom DietPi images from this repository.
-`PLAN.md` documents the image-build workflow and related follow-up tasks.
+`docs/PLAN.md` documents the image-build workflow and related follow-up tasks.
 
 ## Canonical instruction source
 
@@ -20,9 +20,10 @@ A GitHub Actions workflow now builds pinned custom DietPi images from this repos
 dotfiles-pi/
 ├── AGENTS.md              ← canonical agent instructions (this file)
 ├── CLAUDE.md              ← symlink → AGENTS.md
-├── PLAN.md                ← image-build automation plan (future work)
+├── docs/
+│   ├── PLAN.md            ← image-build automation plan (future work)
+│   └── TODO.md            ← future work and migration notes
 ├── README.md              ← repo overview
-├── TODO.md                ← future work and migration notes
 ├── custom-instructions/   ← shared custom instruction profiles
 ├── renovate.json          ← Renovate dependency-update config
 ├── apps.sh                ← apt/PPA bootstrap helper
@@ -54,7 +55,7 @@ dotfiles-pi/
 - Keep scripts explicit, readable, and safe to rerun when practical.
 - Use `rg` for file discovery before editing unfamiliar areas.
 - Do not introduce dependencies, frameworks, or large structure changes unless explicitly requested.
-- `PLAN.md` describes future intent — do not implement planned items unless explicitly asked.
+- `docs/PLAN.md` describes future intent — do not implement planned items unless explicitly asked.
 
 ## Bash script conventions
 
@@ -88,8 +89,8 @@ If `shellcheck` is not installed, note that and still run the `bash -n` checks.
 ## Documentation expectations
 
 - Update `README.md` when setup behavior or repository purpose changes.
-- Keep `TODO.md` focused on future work, references, and migration notes.
-- Keep `PLAN.md` as a high-level plan; do not expand it with implementation details unless asked.
+- Keep `docs/TODO.md` focused on future work, references, and migration notes.
+- Keep `docs/PLAN.md` as a high-level plan; do not expand it with implementation details unless asked.
 - Keep long-lived agent instructions centralized in `AGENTS.md`.
 
 ## Safety boundaries
@@ -101,7 +102,7 @@ Do not:
 - add destructive commands or remove packages/data without explicit request
 - make firewall, SSH, or network-hardening changes without explicit request
 - replace safe apt/keyring installation steps with less transparent alternatives
-- implement items from `PLAN.md` unless explicitly requested
+- implement items from `docs/PLAN.md` unless explicitly requested
 
 ## Definition of done
 
