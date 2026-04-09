@@ -6,9 +6,9 @@
 ## Repo at a glance
 
 - Raspberry Pi / Debian bootstrap dotfiles and helper scripts
-- Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `PLAN.md` (future image-build automation)
+- Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `Pifile`, `dietpi.txt`, `PLAN.md`
 - `RaspberryPi/`: migrated scripts — F2FS helpers, update/cleanup scripts, dotfiles, reference docs
-- No CI, no test suite, no package manifest today
+- GitHub Actions `build-image.yml` builds custom DietPi images; there is still no test suite or package manifest today
 
 ## How to work here
 

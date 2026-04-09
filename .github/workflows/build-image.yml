@@ -1,0 +1,102 @@
+name: Build DietPi image
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Pin the stable Bookworm image for the shared Raspberry Pi 2/3/4/Zero 2 W ARMv8 target.
+      DIETPI_IMAGE_NAME: DietPi_RPi234-ARMv8-Bookworm.img.xz
+      DIETPI_IMAGE_URL: https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz
+      DIETPI_SHA256_URL: https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz.sha256
+      DIETPI_SOURCE_IMAGE: build/cache/DietPi_RPi234-ARMv8-Bookworm.img.xz
+      DIETPI_OUTPUT_IMAGE: build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare build directories
+        run: mkdir -p build/cache build/mnt/boot build/output
+
+      - name: Cache DietPi base image
+        id: cache-base-image
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DIETPI_SOURCE_IMAGE }}
+          key: dietpi-base-${{ runner.os }}-${{ env.DIETPI_IMAGE_NAME }}
+
+      - name: Download DietPi base image
+        if: steps.cache-base-image.outputs.cache-hit != 'true'
+        run: curl -fsSL "$DIETPI_IMAGE_URL" -o "$DIETPI_SOURCE_IMAGE"
+
+      - name: Verify DietPi base image checksum
+        run: |
+          curl -fsSL "$DIETPI_SHA256_URL" -o "build/cache/${DIETPI_IMAGE_NAME}.sha256"
+          (
+            cd build/cache
+            sha256sum -c "${DIETPI_IMAGE_NAME}.sha256"
+          )
+
+      - name: Validate DietPi automation template
+        run: |
+          if grep -Eq '^AUTO_SETUP_GLOBAL_PASSWORD=MUST_SET_PASSWORD_BEFORE_BUILD[[:space:]]*$' dietpi.txt; then
+            echo 'Set AUTO_SETUP_GLOBAL_PASSWORD in dietpi.txt before building an image.' >&2
+            exit 1
+          fi
+
+      - name: Customize image with pimod
+        uses: Nature40/pimod@0.9.1
+        with:
+          pifile: Pifile
+
+      - name: Inject DietPi automation config
+        run: |
+          loop_device=$(sudo losetup --find --show --partscan "$DIETPI_OUTPUT_IMAGE")
+          cleanup() {
+            sudo umount build/mnt/boot 2>/dev/null || true
+            sudo losetup -d "$loop_device" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          sudo mount "${loop_device}p1" build/mnt/boot
+          sudo install -Dm644 dietpi.txt build/mnt/boot/dietpi/dietpi.txt
+
+          if [[ -f dietpi-wifi.txt ]]; then
+            sudo install -Dm600 dietpi-wifi.txt build/mnt/boot/dietpi-wifi.txt
+          fi
+
+      - name: Compress image and generate checksum
+        run: |
+          xz -T0 -9e -f "$DIETPI_OUTPUT_IMAGE"
+          sha256sum "${DIETPI_OUTPUT_IMAGE}.xz" > "${DIETPI_OUTPUT_IMAGE}.xz.sha256"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotfiles-pi-dietpi-rpi234-armv8-bookworm
+          path: |
+            build/output/*.img.xz
+            build/output/*.img.xz.sha256
+
+      # piqemu-action smoke tests are intentionally not enabled here yet:
+      # DietPi ARMv8 images are built and released without CI gating until a reliable runner path exists.
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/output/*.img.xz
+            build/output/*.img.xz.sha256
+          generate_release_notes: true

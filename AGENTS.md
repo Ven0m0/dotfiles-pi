@@ -4,8 +4,9 @@
 
 Personal Raspberry Pi / Debian bootstrap dotfiles and helper scripts.
 Bash-first repo with a flat root layout and a `RaspberryPi/` subtree of migrated scripts.
-No application framework, package manager manifest, or automated CI workflow exists today.
-`PLAN.md` describes the intended automated image-build workflow using GitHub Actions.
+No application framework or package manager manifest exists today.
+A GitHub Actions workflow now builds pinned custom DietPi images from this repository.
+`PLAN.md` documents the image-build workflow and related follow-up tasks.
 
 ## Canonical instruction source
 
@@ -27,7 +28,9 @@ dotfiles-pi/
 ├── apps.sh                ← apt/PPA bootstrap helper
 ├── mise.sh                ← installs mise via apt keyring + apt repo
 ├── .github/
-│   └── copilot-instructions.md
+│   ├── copilot-instructions.md
+│   └── workflows/
+│       └── build-image.yml  ← GitHub Actions DietPi image build/release workflow
 ├── .claude/
 │   └── skills/server-management/SKILL.md  ← generic Claude skill (not repo policy)
 └── RaspberryPi/           ← scripts migrated from Ven0m0/Linux-OS

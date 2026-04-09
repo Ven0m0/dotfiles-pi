@@ -5,6 +5,8 @@ My raspberry pi debian dotfiles and stuff
 
 - **[RaspberryPi/](RaspberryPi/)**: A collection of scripts and configurations for Raspberry Pi and DietPi, migrated from [Ven0m0/Linux-OS](https://github.com/Ven0m0/Linux-OS).
 - **[PLAN.md](PLAN.md)**: A detailed implementation plan for automated image building and customization.
+- **[Pifile](Pifile)** and **[dietpi.txt](dietpi.txt)**: Image customisation and first-boot automation inputs for DietPi builds.
+- **[.github/workflows/build-image.yml](.github/workflows/build-image.yml)**: GitHub Actions pipeline for building and releasing custom DietPi images.
 - **[apps.sh](apps.sh)**: APT/PPA bootstrap helper script.
 - **[mise.sh](mise.sh)**: Installer for `mise` tool manager.
 
