@@ -148,9 +148,9 @@ The tasks below track improvements to the existing helper scripts in this reposi
 
 | #  | ID   | Title                                                       | Sev    | Cat      | Size | Blocks       |
 |----|------|-------------------------------------------------------------|--------|----------|------|--------------|
-| 1  | T001 | Fix stale Linux-OS URLs in RaspberryPi/README.md            | high   | docs     | S    | —            |
+| 1  | T001 | Fix stale Linux-OS URLs in docs/raspberrypi/README.md       | high   | docs     | S    | —            |
 | 2  | T002 | Fix stale Linux-OS project URL in DIETPI_F2FS_GUIDE.md      | medium | docs     | S    | —            |
-| 3  | T003 | Complete "Settings todo" stub in RaspberryPi/README.md      | medium | docs     | S    | —            |
+| 3  | T003 | Complete "Settings todo" stub in docs/raspberrypi/README.md | medium | docs     | S    | —            |
 | 4  | T004 | Install fsck.f2fs in rootfs when missing in f2fs-new.sh     | high   | bug      | M    | —            |
 | 5  | T005 | Add reboot confirmation prompt to Kbuild.sh                 | medium | refactor | S    | —            |
 
@@ -158,9 +158,9 @@ The tasks below track improvements to the existing helper scripts in this reposi
 
 ## Tasks
 
-### T001 · Fix stale Linux-OS URLs in RaspberryPi/README.md
+### T001 · Fix stale Linux-OS URLs in docs/raspberrypi/README.md
 
-**File:** `RaspberryPi/README.md:34` and `RaspberryPi/README.md:40`
+**File:** `docs/raspberrypi/README.md:34` and `docs/raspberrypi/README.md:40`
 **Severity:** high · **Category:** docs · **Size:** S
 **Blocks:** — · **Blocked by:** —
 
@@ -178,19 +178,19 @@ curl -fsSL https://raw.githubusercontent.com/Ven0m0/Linux-OS/refs/heads/main/Ras
 - [ ] Line 34: URL base changed from `Ven0m0/Linux-OS/refs/heads/main` to `Ven0m0/dotfiles-pi/refs/heads/main`.
 - [ ] Line 40: URL base changed from `Ven0m0/Linux-OS/refs/heads/main` to `Ven0m0/dotfiles-pi/refs/heads/main`.
 - [ ] Both resulting URLs follow the pattern `https://raw.githubusercontent.com/Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/<script>.sh`.
-- [ ] No other lines in `RaspberryPi/README.md` are modified.
+- [ ] No other lines in `docs/raspberrypi/README.md` are modified.
 
 **Implementation:**
 ```
-sed -i 's|Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/update.sh|Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/update.sh|' RaspberryPi/README.md
-sed -i 's|Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/PiClean.sh|Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/PiClean.sh|' RaspberryPi/README.md
+sed -i 's|Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/update.sh|Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/update.sh|' docs/raspberrypi/README.md
+sed -i 's|Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/PiClean.sh|Ven0m0/dotfiles-pi/refs/heads/main/RaspberryPi/PiClean.sh|' docs/raspberrypi/README.md
 ```
 
 ---
 
 ### T002 · Fix stale Linux-OS project URL in DIETPI_F2FS_GUIDE.md
 
-**File:** `RaspberryPi/DIETPI_F2FS_GUIDE.md:224`
+**File:** `docs/raspberrypi/DIETPI_F2FS_GUIDE.md:224`
 **Severity:** medium · **Category:** docs · **Size:** S
 **Blocks:** — · **Blocked by:** —
 
@@ -208,14 +208,14 @@ sed -i 's|Ven0m0/Linux-OS/refs/heads/main/RaspberryPi/PiClean.sh|Ven0m0/dotfiles
 
 **Implementation:**
 ```
-sed -i 's|https://github.com/Ven0m0/Linux-OS|https://github.com/Ven0m0/dotfiles-pi|' RaspberryPi/DIETPI_F2FS_GUIDE.md
+sed -i 's|https://github.com/Ven0m0/Linux-OS|https://github.com/Ven0m0/dotfiles-pi|' docs/raspberrypi/DIETPI_F2FS_GUIDE.md
 ```
 
 ---
 
-### T003 · Complete "Settings todo" stub in RaspberryPi/README.md
+### T003 · Complete "Settings todo" stub in docs/raspberrypi/README.md
 
-**File:** `RaspberryPi/README.md:43–47`
+**File:** `docs/raspberrypi/README.md:43–47`
 **Severity:** medium · **Category:** docs · **Size:** S
 **Blocks:** — · **Blocked by:** —
 

@@ -8,7 +8,8 @@
 - Raspberry Pi / Debian bootstrap dotfiles and helper scripts
 - Root-level: `apps.sh` (apt/PPA), `mise.sh` (mise tool manager), `Pifile`, `dietpi.txt`
 - Planning docs: `docs/PLAN.md`, `docs/TODO.md`
-- `RaspberryPi/`: migrated scripts — F2FS helpers, update/cleanup scripts, dotfiles, reference docs
+- `RaspberryPi/`: migrated scripts — F2FS helpers, update/cleanup scripts, dotfiles
+- `docs/raspberrypi/`: Raspberry Pi guides and reference docs
 - GitHub Actions `build-image.yml` builds custom DietPi images; there is still no test suite or package manifest today
 
 ## How to work here

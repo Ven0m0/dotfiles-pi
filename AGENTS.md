@@ -34,8 +34,10 @@ dotfiles-pi/
 │       └── build-image.yml  ← GitHub Actions DietPi image build/release workflow
 ├── .claude/
 │   └── skills/server-management/SKILL.md  ← generic Claude skill (not repo policy)
+│   └── raspberrypi/
+│       ├── README.md / QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md
+│       └── reference/REFERENCES.md
 └── RaspberryPi/           ← scripts migrated from Ven0m0/Linux-OS
-    ├── README.md / QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md
     ├── f2fs-new.sh        ← F2FS conversion for SD card longevity
     ├── raspi-f2fs.sh      ← alternative F2FS helper
     ├── update.sh          ← automated system updates
@@ -44,8 +46,7 @@ dotfiles-pi/
     ├── Scripts/           ← one-off setup/utility scripts
     │   ├── setup.sh       ← initial system hardening
     │   ├── podman-docker.sh, apkg.sh, Kbuild.sh, pi-minify.sh, …
-    ├── dots/              ← dotfiles (.gitconfig, .profile, .inputrc, apt.conf, …)
-    └── docs/              ← reference notes (dietpi.txt, pihole.txt, Kernel.txt, …)
+    └── dots/              ← dotfiles (.gitconfig, .profile, .inputrc, apt.conf, …)
 ```
 
 ## Working rules
