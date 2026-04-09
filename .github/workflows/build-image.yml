@@ -49,6 +49,13 @@ jobs:
             sha256sum -c "${DIETPI_IMAGE_NAME}.sha256"
           )
 
+      - name: Validate DietPi automation template
+        run: |
+          if grep -qx 'AUTO_SETUP_GLOBAL_PASSWORD=CHANGE_ME' dietpi.txt; then
+            echo 'Set AUTO_SETUP_GLOBAL_PASSWORD in dietpi.txt before building an image.' >&2
+            exit 1
+          fi
+
       - name: Customize image with pimod
         uses: Nature40/pimod@0.9.1
         with:

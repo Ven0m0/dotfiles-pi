@@ -1,4 +1,5 @@
 # Custom DietPi image build for this repository.
+# Partition 2 is the DietPi root filesystem in the official Raspberry Pi image layout.
 FROM "${DIETPI_SOURCE_IMAGE:-build/cache/DietPi_RPi234-ARMv8-Bookworm.img.xz}" 2
 TO "${DIETPI_OUTPUT_IMAGE:-build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img}"
 
@@ -18,12 +19,6 @@ RUN bash /root/apps.sh
 RUN bash /root/mise.sh
 RUN bash -c 'cp -a /root/dots/. /etc/skel/'
 RUN bash -c 'cp -a /root/dots/. /home/dietpi/ && chown -R dietpi:dietpi /home/dietpi || true'
-RUN bash /root/setup.sh -m -s
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
-ZERO
-SHRINK
-tools
 RUN bash /root/setup.sh -m -s
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
