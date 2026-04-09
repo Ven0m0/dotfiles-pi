@@ -36,7 +36,7 @@ main() {
   run_root apt-get update
   run_root apt-get install -y --no-install-recommends software-properties-common
 
-  if ! grep -Rqs '^deb .*cappelikan/ppa' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null; then
+  if ! grep -Rhsq '^[[:space:]]*deb .*cappelikan/ppa' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null; then
     if ! run_root add-apt-repository -y ppa:cappelikan/ppa; then
       printf 'WARN: failed to add ppa:cappelikan/ppa; continuing without it\n' >&2
     fi

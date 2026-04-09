@@ -10,8 +10,8 @@
 # - Once applied during first run setup, the password is removed from this file, encrypted and stored to a safer location to be used by dietpi-software only.
 # - WARN: The default SSH server Dropbear does not support passwords over 100 bytes. Certain special characters, and such with accents, take 2 bytes.
 # - WARN: We cannot guarantee that all software options can handle special characters like $"|\.
-# - This repository's build workflow refuses to build while CHANGE_ME is left in place.
-AUTO_SETUP_GLOBAL_PASSWORD=CHANGE_ME
+# - This repository's build workflow refuses to build while MUST_SET_PASSWORD_BEFORE_BUILD is left in place.
+AUTO_SETUP_GLOBAL_PASSWORD=MUST_SET_PASSWORD_BEFORE_BUILD
 
 ##### Language/Regional options #####
 # Locale e.g.: "en_GB.UTF-8" / "de_DE.UTF-8" | One entry and UTF-8 ONLY!

@@ -51,7 +51,7 @@ jobs:
 
       - name: Validate DietPi automation template
         run: |
-          if grep -qx 'AUTO_SETUP_GLOBAL_PASSWORD=CHANGE_ME' dietpi.txt; then
+          if grep -Eq '^AUTO_SETUP_GLOBAL_PASSWORD=MUST_SET_PASSWORD_BEFORE_BUILD[[:space:]]*$' dietpi.txt; then
             echo 'Set AUTO_SETUP_GLOBAL_PASSWORD in dietpi.txt before building an image.' >&2
             exit 1
           fi
