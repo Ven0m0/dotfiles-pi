@@ -25,14 +25,14 @@ jobs:
       DIETPI_OUTPUT_IMAGE: build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare build directories
         run: mkdir -p build/cache build/mnt/boot build/output
 
       - name: Cache DietPi base image
         id: cache-base-image
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.DIETPI_SOURCE_IMAGE }}
           key: dietpi-base-${{ runner.os }}-${{ env.DIETPI_IMAGE_NAME }}
@@ -83,7 +83,7 @@ jobs:
           sha256sum "${DIETPI_OUTPUT_IMAGE}.xz" > "${DIETPI_OUTPUT_IMAGE}.xz.sha256"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dotfiles-pi-dietpi-rpi234-armv8-bookworm
           path: |
@@ -94,7 +94,7 @@ jobs:
       # DietPi ARMv8 images are built and released without CI gating until a reliable runner path exists.
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             build/output/*.img.xz
