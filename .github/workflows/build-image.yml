@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: Customize image with pimod
-        uses: Nature40/pimod@0.9.1
+        uses: Nature40/pimod@v0.9.1
         with:
           pifile: Pifile
 
