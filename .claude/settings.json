@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r \".tool_input.file_path // empty\"); case \"$f\" in *.sh) bash -n \"$f\"; shellcheck \"$f\" ;; esac; true",
+            "statusMessage": "bash -n + shellcheck",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "root=$(git rev-parse --show-toplevel 2>/dev/null); f=\"$root/dietpi-wifi.txt\"; if [[ -f \"$f\" ]] && grep -qE \"a(WIFI_SSID|WIFI_KEY)\\[[0-9]+\\]='[^']+'\" \"$f\"; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"dietpi-wifi.txt has non-empty WiFi credentials (aWIFI_SSID/aWIFI_KEY) - blank them before committing (see AGENTS.md).\"}}'; fi",
+            "if": "Bash(git commit*)",
+            "statusMessage": "checking dietpi-wifi.txt for real credentials",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "root=$(git rev-parse --show-toplevel 2>/dev/null); f=\"$root/dietpi-wifi.txt\"; if [[ -f \"$f\" ]] && grep -qE \"a(WIFI_SSID|WIFI_KEY)\\[[0-9]+\\]='[^']+'\" \"$f\"; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"dietpi-wifi.txt has non-empty WiFi credentials (aWIFI_SSID/aWIFI_KEY) - blank them before committing (see AGENTS.md).\"}}'; fi",
+            "if": "Bash(git add*)",
+            "statusMessage": "checking dietpi-wifi.txt for real credentials",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

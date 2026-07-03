@@ -2,15 +2,14 @@
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR
 set -euo pipefail
 shopt -s nullglob globstar
-IFS=$'\n\t' LC_ALL=C DEBIAN_FRONTEND=noninteractive
+IFS=$'\n\t'
+export LC_ALL=C DEBIAN_FRONTEND=noninteractive
 # DESCRIPTION: Automated Raspberry Pi system optimization and tooling setup
 #              Targets: Debian/Raspbian, DietPi
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
 # Colors
-BLK=$'\e[30m' RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m'
-BLU=$'\e[34m' MGN=$'\e[35m' CYN=$'\e[36m' WHT=$'\e[37m'
-LBLU=$'\e[38;5;117m' PNK=$'\e[38;5;218m' BWHT=$'\e[97m'
+RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m'
 DEF=$'\e[0m' BLD=$'\e[1m'
 # Core helpers
 has() { command -v -- "$1" &>/dev/null; }
@@ -22,14 +21,25 @@ die() {
   exit "${2:-1}"
 }
 # Config flags
-declare -A cfg=([dry_run]=0 [skip_external]=0 [minimal]=0 [quiet]=0 [insecure_ssh]=0)
-run() { ((cfg[dry_run])) && log "[DRY] $*" || "$@"; }
-# Safe cleanup workspace
+declare -A cfg=([dry_run]=0 [skip_external]=0 [minimal]=0 [quiet]=0 [insecure_ssh]=0 [pihole]=0 [nextcloud]=0)
+# Runs its argument vector for real, or just logs it under --dry-run.
+run() {
+  if ((cfg[dry_run])); then
+    local IFS=' '
+    log "[DRY] $*"
+  else
+    "$@"
+  fi
+}
+# apt-get wrapper: keeps installs non-interactive under sudo (DEBIAN_FRONTEND is
+# not exported through sudo's environment reset otherwise) and honors --dry-run.
+apt_get() { run sudo DEBIAN_FRONTEND=noninteractive apt-get -y "$@"; }
 
 run_url() {
   local url="$1"
   shift
   if ((cfg[dry_run])); then
+    local IFS=' '
     log "[DRY] Run (user): $url $*"
     return 0
   fi
@@ -45,6 +55,7 @@ run_url_sudo() {
   local url="$1"
   shift
   if ((cfg[dry_run])); then
+    local IFS=' '
     log "[DRY] Run (root): $url $*"
     return 0
   fi
@@ -75,8 +86,12 @@ write_conf() {
   local dir
   dir=$(dirname "$dest")
   if [[ ! -d $dir ]]; then
-    log "Creating directory: $dir"
-    sudo mkdir -p "$dir"
+    if ((cfg[dry_run])); then
+      log "[DRY] Creating directory: $dir"
+    else
+      log "Creating directory: $dir"
+      sudo mkdir -p "$dir"
+    fi
   fi
   if ((cfg[dry_run])); then
     log "[DRY] Writing to $dest:"
@@ -92,17 +107,24 @@ pi-setup.sh - Raspberry Pi optimization & tooling automation
 Usage: pi-setup.sh [OPTIONS]
 Options:
   -d, --dry-run        Show actions without executing
-  -s, --skip-external  Skip external installers (Pi-hole, PiKISS)
+  -s, --skip-external  Skip external installers and alt. package managers
+                        (Pi-hole, PiApps, apt-fast, deb-get, eget, pacstall)
   -m, --minimal        Core optimizations only (no extra tooling)
   -i, --insecure-ssh   Enable insecure SSH (root login + password auth)
+  -p, --pihole         Install Pi-hole (official installer, interactive)
+  -n, --nextcloud      Install & set up Nextcloud (DietPi only, via dietpi-software;
+                        uses SOFTWARE_NEXTCLOUD_USERNAME/AUTO_SETUP_GLOBAL_PASSWORD
+                        from dietpi.txt)
   -q, --quiet          Suppress non-error output
   -h, --help           Show this help
 Performs:
   • APT configuration (parallel downloads, compression, auto-upgrade)
   • dpkg nodoc configuration + cleanup
   • System optimization (I/O, power, journald, caching)
-  • Modern tooling (fd, rg, bat, eza, zoxide, navi, yt-dlp)
-  • Optional: Pi-hole, PiKISS, PiApps, apt-fast, deb-get, pacstall
+  • Enable IPv4/IPv6 packet forwarding (router/gateway use)
+  • Modern tooling (fd, rg, bat, fzf, zstd, eza, zoxide, python3, nodejs, uv, bun)
+  • Opt-in: Pi-hole (-p), Nextcloud (-n)
+  • Optional: PiKISS (manual), PiApps, apt-fast, deb-get, eget, pacstall
 EOF
 }
 parse_args() {
@@ -112,6 +134,8 @@ parse_args() {
       -s | --skip-external) cfg[skip_external]=1 ;;
       -m | --minimal) cfg[minimal]=1 ;;
       -i | --insecure-ssh) cfg[insecure_ssh]=1 ;;
+      -p | --pihole) cfg[pihole]=1 ;;
+      -n | --nextcloud) cfg[nextcloud]=1 ;;
       -q | --quiet)
         cfg[quiet]=1
         exec >/dev/null
@@ -136,14 +160,13 @@ parse_args() {
 # APT Configuration
 configure_apt() {
   log "Configuring APT for performance & reliability"
-  write_conf "/etc/apt/apt.conf.d/99parallel" 'APT::Acquire::Retries "5";
+  write_conf "/etc/apt/apt.conf.d/99parallel" 'Acquire::Retries "5";
 Acquire::Queue-Mode "access";
 Acquire::Languages "none";
-APT::Acquire::ForceIPv4 "true";
+Acquire::ForceIPv4 "true";
 APT::Get::AllowUnauthenticated "false";
 Acquire::CompressionTypes::Order:: "gz";
-APT { Get { Assume-Yes "true"; Fix-Broken "true"; Fix-Missing "true"; List-Cleanup "true"; };};
-APT::Acquire::Max-Parallel-Downloads "5";'
+APT { Get { Assume-Yes "true"; Fix-Broken "true"; Fix-Missing "true"; List-Cleanup "true"; };};'
 
   write_conf "/etc/apt/apt.conf.d/50-unattended-upgrades" 'APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
@@ -163,9 +186,9 @@ Unattended-Upgrade::MinimalSteps "true";'
 }
 enable_ip_forwarding() {
   log "Enabling IP forwarding..."
-  sudo sysctl -w net.ipv4.ip_forward=1
-  sudo sysctl -w net.ipv6.conf.all.forwarding=1
-  sudo sysctl -w net.ipv6.conf.default.forwarding=1
+  run sudo sysctl -w net.ipv4.ip_forward=1
+  run sudo sysctl -w net.ipv6.conf.all.forwarding=1
+  run sudo sysctl -w net.ipv6.conf.default.forwarding=1
   write_conf "/etc/sysctl.d/99-ip-forward.conf" 'net.ipv4.ip_forward=1
 net.ipv6.conf.all.forwarding=1
 net.ipv6.conf.default.forwarding=1'
@@ -184,25 +207,32 @@ path-include /usr/share/doc/*/copyright'
 }
 clean_docs() {
   log "Removing existing documentation files"
+  # Locale to keep: the system's configured LANG, falling back to en_US.
+  local keep_locale
+  keep_locale=$(sed -n 's/^LANG=\([^.@]*\).*/\1/p' /etc/default/locale 2>/dev/null | head -n1)
+  keep_locale=${keep_locale:-en_US}
   # Merged find: remove all doc files except copyright, then remove compressed docs, then empty dirs
-  run find /usr/share/doc/ -depth \( -type f ! -name copyright -o -name '*.gz' -o -name '*.pdf' -o -name '*.tex' \) -delete -o -type d -empty -delete 2>/dev/null || :
-  sudo rm -rf /usr/share/{groff,info,lintian,linda,man}/* /var/cache/man/* 2>/dev/null || :
-  sudo bash -c 'cd /usr/share/locale && for d in *; do [[ $d != en_GB ]] && rm -rf "$d"; done' 2>/dev/null || :
-  sudo bash -c 'cd /usr/share/X11/locale && for d in *; do [[ $d != en_GB ]] && rm -rf "$d"; done' 2>/dev/null || :
-  sudo apt-get remove --purge -y '*texlive*' '*-doc' 2>/dev/null || :
+  run sudo find /usr/share/doc/ -depth \( -type f ! -name copyright -o -name '*.gz' -o -name '*.pdf' -o -name '*.tex' \) -delete -o -type d -empty -delete 2>/dev/null || :
+  if ((cfg[dry_run])); then
+    log "[DRY] Remove /usr/share/{groff,info,lintian,linda,man}, /var/cache/man, and non-$keep_locale locale/X11-locale data"
+  else
+    sudo rm -rf /usr/share/{groff,info,lintian,linda,man}/* /var/cache/man/* 2>/dev/null || :
+    sudo bash -c "cd /usr/share/locale && for d in *; do [[ \$d != $keep_locale ]] && rm -rf \"\$d\"; done" 2>/dev/null || :
+    sudo bash -c "cd /usr/share/X11/locale && for d in *; do [[ \$d != $keep_locale ]] && rm -rf \"\$d\"; done" 2>/dev/null || :
+  fi
+  apt_get remove --purge '*texlive*' '*-doc' 2>/dev/null || :
 }
 # System Optimization
 optimize_system() {
   log "Applying system-level optimizations"
-  sudo systemctl mask NetworkManager-wait-online.service 2>/dev/null || :
   write_conf "/etc/NetworkManager/conf.d/20-connectivity.conf" '[connectivity]
 enabled=false'
 
-  [[ -f /etc/selinux/config ]] && {
+  if [[ -f /etc/selinux/config ]]; then
     write_conf "/etc/selinux/config" 'SELINUX=disabled
 SELINUXTYPE=minimum'
-    sudo setenforce 0 2>/dev/null || :
-  }
+    run sudo setenforce 0 2>/dev/null || :
+  fi
   write_conf "/etc/modprobe.d/misc.conf" 'options cec debug=0
 options pstore backend=null
 options snd_hda_intel power_save=1
@@ -211,32 +241,36 @@ options usbhid mousepoll=20 kbpoll=20
 options usbcore autosuspend=10'
 
   # Batch I/O scheduler configuration (single sudo call)
-  printf '%s\n' /sys/block/sd*[!0-9]/queue/iosched/fifo_batch /sys/block/{mmcblk*,nvme[0-9]*}/queue/iosched/fifo_batch 2>/dev/null \
-    | xargs -r -I{} sudo bash -c '[[ -f {} ]] && echo 32 > {} || :'
+  if ((cfg[dry_run])); then
+    log "[DRY] Set I/O scheduler fifo_batch=32 on block devices"
+  else
+    printf '%s\n' /sys/block/sd*[!0-9]/queue/iosched/fifo_batch /sys/block/{mmcblk*,nvme[0-9]*}/queue/iosched/fifo_batch 2>/dev/null \
+      | xargs -r -I{} sudo bash -c '[[ -f {} ]] && echo 32 > {} || :'
+  fi
   local root_dev home_dev
   root_dev=$(findmnt -n -o SOURCE /)
   home_dev=$(findmnt -n -o SOURCE /home 2>/dev/null || echo "$root_dev")
   # Combine tune2fs calls (75% reduction in filesystem operations)
-  [[ -n $root_dev ]] && {
-    sudo tune2fs -o journal_data_writeback \
+  if [[ -n $root_dev ]]; then
+    run sudo tune2fs -o journal_data_writeback \
       -O fast_commit,^metadata_csum,^quota \
       -c 0 -i 0 "$root_dev" 2>/dev/null || :
-  }
-  [[ -n $home_dev && $home_dev != "$root_dev" ]] && {
-    sudo tune2fs -o journal_data_writeback \
+  fi
+  if [[ -n $home_dev && $home_dev != "$root_dev" ]]; then
+    run sudo tune2fs -o journal_data_writeback \
       -O ^has_journal,fast_commit,^metadata_csum,^quota \
       -c 0 -i 0 "$home_dev" 2>/dev/null || :
-  }
+  fi
   if ip -o link | grep -q wlan; then
     write_conf "/etc/modprobe.d/wlan.conf" 'options iwlwifi power_save=1
 options iwlmvm power_scheme=3
 options rfkill default_state=0 master_switch_mode=0'
-    has ethtool && sudo ethtool -K wlan0 gro on gso on 2>/dev/null || :
+    has ethtool && run sudo ethtool -K wlan0 gro on gso on 2>/dev/null || :
   else
-    has ethtool && {
-      sudo ethtool -K eth0 gro off gso off 2>/dev/null || :
-      sudo ethtool -C eth0 adaptive-rx on adaptive-tx on 2>/dev/null || :
-    }
+    if has ethtool; then
+      run sudo ethtool -K eth0 gro off gso off 2>/dev/null || :
+      run sudo ethtool -C eth0 adaptive-rx on adaptive-tx on 2>/dev/null || :
+    fi
   fi
   write_conf "/etc/systemd/journald.conf.d/optimization.conf" '[Journal]
 ForwardToSyslog=no
@@ -244,23 +278,25 @@ ForwardToKMsg=no
 ForwardToConsole=no
 ForwardToWall=no
 Compress=yes'
-  sudo journalctl --rotate --vacuum-time=1s 2>/dev/null || :
+  run sudo journalctl --rotate --vacuum-time=1s 2>/dev/null || :
   write_conf "/etc/sysctl.d/50-coredump.conf" 'kernel.core_pattern=/dev/null
 kernel.hung_task_timeout_secs=0'
-  sudo sysctl -w kernel.hung_task_timeout_secs=0 2>/dev/null || :
-  has update-initramfs && sudo update-initramfs -u -k all || :
+  run sudo sysctl -w kernel.hung_task_timeout_secs=0 2>/dev/null || :
+  has update-initramfs && run sudo update-initramfs -u -k all || :
 }
 # SSH Configuration
 configure_ssh() {
   log "Configuring SSH/Dropbear"
-  [[ -f /etc/default/dropbear ]] && sudo sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+  if [[ -f /etc/default/dropbear ]]; then
+    run sudo sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+  fi
 
   if ((cfg[insecure_ssh])); then
     warn "Enabling INSECURE SSH settings (Root Login + Password Auth)"
-    [[ -f /etc/ssh/sshd_config ]] && {
-      sudo sed -i -E 's/#?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
-      sudo sed -i -E 's/#?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-    }
+    if [[ -f /etc/ssh/sshd_config ]]; then
+      run sudo sed -i -E 's/#?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
+      run sudo sed -i -E 's/#?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    fi
   else
     log "Skipping insecure SSH configuration (use --insecure-ssh to override)"
   fi
@@ -268,26 +304,32 @@ configure_ssh() {
 # Modern Tooling Installation
 install_core_tools() {
   log "Installing core modern CLI tools"
-  local tools=(fd-find ripgrep bat fzf zstd curl wget gpg btrfs-progs)
-  sudo apt-get update
-  sudo apt-get install -y "${tools[@]}"
-  [[ -f /usr/bin/fdfind && ! -f "$HOME/.local/bin/fd" ]] && {
-    mkdir -p "$HOME/.local/bin"
-    ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
-  }
+  local tools=(fd-find ripgrep bat fzf zstd curl wget gpg btrfs-progs unattended-upgrades python3 python3-pip python3-venv nodejs npm)
+  apt_get update
+  apt_get install "${tools[@]}"
+  if [[ -f /usr/bin/fdfind && ! -f "$HOME/.local/bin/fd" ]]; then
+    run mkdir -p "$HOME/.local/bin"
+    run ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
+  fi
+  ! has uv && run_url "https://astral.sh/uv/install.sh"
+  ! has bun && run_url "https://bun.sh/install"
 }
 install_extended_tools() {
   ((cfg[minimal])) && return 0
   log "Installing extended tooling suite"
   if ! has eza; then
-    sudo mkdir -p /etc/apt/keyrings
-    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
-      | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
-      | sudo tee /etc/apt/sources.list.d/gierens.list >/dev/null
-    sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
-    sudo apt-get update
-    sudo apt-get install -y eza
+    if ((cfg[dry_run])); then
+      log "[DRY] Add eza apt repository (deb.gierens.de) and install eza"
+    else
+      sudo mkdir -p /etc/apt/keyrings
+      wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+        | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
+        | sudo tee /etc/apt/sources.list.d/gierens.list >/dev/null
+      sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+    fi
+    apt_get update
+    apt_get install eza
   fi
   ! has zoxide && run_url "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
 }
@@ -296,35 +338,54 @@ install_package_managers() {
   ((cfg[minimal] || cfg[skip_external])) && return 0
   log "Installing alternative package managers"
   if ! has apt-fast; then
-    sudo mkdir -p /etc/apt/keyrings /etc/apt/sources.list.d
-    curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBC5934FD3DEBD4DAEA544F791E2824A7F22B44BD" \
-      | sudo gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu focal main" \
-      | sudo tee /etc/apt/sources.list.d/apt-fast.list >/dev/null
-    sudo apt-get update
-    sudo apt-get install -y apt-fast
+    if ((cfg[dry_run])); then
+      log "[DRY] Add apt-fast PPA and install apt-fast"
+    else
+      sudo mkdir -p /etc/apt/keyrings /etc/apt/sources.list.d
+      curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBC5934FD3DEBD4DAEA544F791E2824A7F22B44BD" \
+        | sudo gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu focal main" \
+        | sudo tee /etc/apt/sources.list.d/apt-fast.list >/dev/null
+    fi
+    apt_get update
+    apt_get install apt-fast
   fi
   if ! has deb-get; then
-    sudo apt-get install -y curl lsb-release wget
+    apt_get install curl lsb-release wget
     run_url_sudo "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get" "install" "deb-get"
   fi
   if ! has eget; then
     run_url "https://zyedidia.github.io/eget.sh"
-    [[ -f ./eget ]] && {
-      mkdir -p "$HOME/.local/bin"
-      mv ./eget "$HOME/.local/bin/"
-    }
+    if [[ -f ./eget ]]; then
+      run mkdir -p "$HOME/.local/bin"
+      run mv ./eget "$HOME/.local/bin/"
+    fi
   fi
   ! has pacstall && run_url_sudo "https://pacstall.dev/q/install"
 }
-# External Installers (Pi-hole, PiKISS, PiApps)
+# External Installers (Pi-hole, Nextcloud, PiKISS, PiApps)
 install_external() {
   ((cfg[skip_external])) && return 0
-  log "Running external installers (interactive)"
-  if ! has pihole; then
-    warn "Pi-hole installer is interactive - proceeding"
-    run_url_sudo "https://install.pi-hole.net"
+  log "Running external installers"
+
+  if ((cfg[pihole])); then
+    if ! has pihole; then
+      warn "Pi-hole installer is interactive - proceeding"
+      run_url_sudo "https://install.pi-hole.net"
+    else
+      log "Pi-hole already installed"
+    fi
   fi
+
+  if ((cfg[nextcloud])); then
+    if has dietpi-software; then
+      log "Installing & setting up Nextcloud via dietpi-software (id 114)"
+      run sudo dietpi-software install 114
+    else
+      err "Nextcloud install requires DietPi (dietpi-software not found) - skipping"
+    fi
+  fi
+
   if ! has pi-apps; then
     run_url "https://raw.githubusercontent.com/Itai-Nelken/PiApps-terminal_bash-edition/main/install.sh"
     has pi-apps && run pi-apps update -y
@@ -348,8 +409,8 @@ main() {
   install_extended_tools
   install_package_managers
   install_external
-  sudo apt-get autoremove -y
-  sudo apt-get autoclean
+  apt_get autoremove
+  apt_get autoclean
   has flatpak && run flatpak uninstall --unused --delete-data -y || :
   log "${GRN}✓${DEF} Setup complete"
   warn "Reboot recommended to apply all optimizations"

@@ -11,7 +11,7 @@
 # - WARN: The default SSH server Dropbear does not support passwords over 100 bytes. Certain special characters, and such with accents, take 2 bytes.
 # - WARN: We cannot guarantee that all software options can handle special characters like $"|\.
 # - This repository's build workflow refuses to build while MUST_SET_PASSWORD_BEFORE_BUILD is left in place.
-AUTO_SETUP_GLOBAL_PASSWORD=MUST_SET_PASSWORD_BEFORE_BUILD
+AUTO_SETUP_GLOBAL_PASSWORD=dietpi
 
 ##### Language/Regional options #####
 # Locale e.g.: "en_GB.UTF-8" / "de_DE.UTF-8" | One entry and UTF-8 ONLY!
@@ -39,7 +39,7 @@ AUTO_SETUP_NET_USESTATIC=0
 AUTO_SETUP_NET_STATIC_IP=192.168.X.X
 AUTO_SETUP_NET_STATIC_MASK=255.255.255.0
 AUTO_SETUP_NET_STATIC_GATEWAY=192.168.X.1
-AUTO_SETUP_NET_STATIC_DNS=1.1.1.1 1.0.0.1
+AUTO_SETUP_NET_STATIC_DNS=94.140.14.14 94.140.15.15
 
 # Set to "1" to convert DHCP leased network settings into static settings automatically on first boot.
 AUTO_SETUP_DHCP_TO_STATIC=0
@@ -70,8 +70,7 @@ AUTO_UNMASK_LOGIND=1
 # - Add as many APT package names as you wish, separated by space.
 # - They will be installed after dietpi-software options and before the script defined via AUTO_SETUP_CUSTOM_SCRIPT_EXEC (see below) is executed.
 # - E.g. the following (without the leading "#") will install the APT packages iotop, iptables and xz-utils:
-# - This pinned list mirrors apps.sh for the image pipeline; gnupg provides the gpg tooling and rust-sd is intentionally left out of the base image.
-AUTO_SETUP_APT_INSTALLS=aria2 bat btrfs-progs ca-certificates curl fd-find f2fs-tools fzf gnupg lsb-release nala ripgrep ugrep wget xz-utils zram-tools zstd
+AUTO_SETUP_APT_INSTALLS=aria2 bat btrfs-progs ca-certificates curl fzf gnupg lsb-release nala ripgrep wget xz-utils zram-tools zstd
 
 # Custom Script (pre-networking and pre-DietPi install)
 # - Allows you to automatically execute a custom script before network is up on first boot.
@@ -192,9 +191,9 @@ CONFIG_G_CHECK_URL_TIMEOUT=10
 CONFIG_G_CHECK_URL_ATTEMPTS=3
 # General connection and DNS testing
 # - IPv4 address to ping when checking network connectivity. Default: 9.9.9.9 (Quad9 DNS IP)
-CONFIG_CHECK_CONNECTION_IP=1.1.1.1
+CONFIG_CHECK_CONNECTION_IP=94.140.14.14
 # - IPv6 address to ping when checking network connectivity. Default: 2620:fe::fe (Quad9 DNS IP)
-CONFIG_CHECK_CONNECTION_IPV6=2606:4700:4700::1111
+CONFIG_CHECK_CONNECTION_IPV6=2a10:50c0::ad1:ff
 # - Domain to resolve when checking DNS resolver. Default: dietpi.com
 CONFIG_CHECK_DNS_DOMAIN=google.com
 

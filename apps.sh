@@ -2,24 +2,7 @@
 set -euo pipefail
 
 APT_PACKAGES=(
-  aria2
-  bat
-  btrfs-progs
-  ca-certificates
-  curl
-  fd-find
-  f2fs-tools
-  fzf
-  gnupg
-  lsb-release
-  nala
-  ripgrep
   software-properties-common
-  ugrep
-  wget
-  xz-utils
-  zram-tools
-  zstd
 )
 
 run_root() {

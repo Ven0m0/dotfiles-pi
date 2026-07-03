@@ -20,6 +20,9 @@ A GitHub Actions workflow now builds pinned custom DietPi images from this repos
 dotfiles-pi/
 ├── AGENTS.md              ← canonical agent instructions (this file)
 ├── CLAUDE.md              ← symlink → AGENTS.md
+├── Pifile                 ← pimod build recipe: bakes apps.sh, mise.sh, setup.sh, dots into the DietPi image
+├── dietpi.txt              ← DietPi first-boot automation config; injected into images by build-image.yml
+├── dietpi-wifi.txt         ← optional WiFi credentials template; injected if present (keep credential fields blank in git)
 ├── docs/
 │   ├── PLAN.md            ← image-build automation plan (future work)
 │   └── raspberrypi/
@@ -43,10 +46,23 @@ dotfiles-pi/
     ├── PiClean.sh         ← system cleanup
     ├── dietpi-chroot.sh   ← DietPi chroot helper
     ├── Scripts/           ← one-off setup/utility scripts
-    │   ├── setup.sh       ← initial system hardening
+    │   ├── setup.sh       ← Debian/DietPi setup: APT/dpkg tuning, hardening, modern CLI
+    │   │                    tooling, opt-in Pi-hole/Nextcloud (see -h for flags)
     │   ├── podman-docker.sh, apkg.sh, Kbuild.sh, pi-minify.sh, …
     └── dots/              ← dotfiles (.gitconfig, .profile, .inputrc, apt.conf, …)
 ```
+
+## Image build pipeline
+
+- `Pifile` (via `pimod` in `.github/workflows/build-image.yml`) bakes `apps.sh`, `mise.sh`,
+  `RaspberryPi/Scripts/setup.sh`, and `RaspberryPi/dots` into the DietPi image. `apps.sh` and
+  `mise.sh` run *during* the image build; `setup.sh` is staged to `/root/setup.sh` but not
+  auto-run — it's meant for opt-in, flag-driven use after boot.
+- The workflow refuses to build while `dietpi.txt`'s `AUTO_SETUP_GLOBAL_PASSWORD` is still
+  `MUST_SET_PASSWORD_BEFORE_BUILD` — this is the one intentional exception to the "no secrets"
+  rule below; `dietpi.txt` is a personal automation template the user fills in, not shared code.
+- `dietpi-wifi.txt`, if present at repo root, is injected the same way — keep its SSID/key
+  fields blank in git; fill them in only on a local, untracked copy.
 
 ## Working rules
 
