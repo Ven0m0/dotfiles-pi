@@ -13,11 +13,13 @@ run_root() {
   fi
 }
 
-main() {
-  export DEBIAN_FRONTEND=noninteractive
+# apt-get wrapper: DEBIAN_FRONTEND doesn't survive sudo's environment reset when merely
+# exported, so route it through env, which sets it directly for the exec'd process.
+apt_get() { run_root env DEBIAN_FRONTEND=noninteractive apt-get -y "$@"; }
 
-  run_root apt-get update
-  run_root apt-get install -y --no-install-recommends software-properties-common
+main() {
+  apt_get update
+  apt_get install --no-install-recommends software-properties-common
 
   if ! grep -Rhsq '^[[:space:]]*deb .*cappelikan/ppa' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null; then
     if ! run_root add-apt-repository -y ppa:cappelikan/ppa; then
@@ -25,8 +27,8 @@ main() {
     fi
   fi
 
-  run_root apt-get update
-  run_root apt-get install -y --no-install-recommends "${APT_PACKAGES[@]}"
+  apt_get update
+  apt_get install --no-install-recommends "${APT_PACKAGES[@]}"
 }
 
 main "$@"
