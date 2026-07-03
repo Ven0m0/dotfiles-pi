@@ -64,6 +64,7 @@ RaspberryPi/
 │   ├── apkg.sh            # Interactive APT package helper
 │   ├── apply-cmdline.sh   # Apply this repo's tuned kernel cmdline.txt params to any target file
 │   ├── blocklist.sh       # hblock wrapper
+│   ├── dedupe-media.sh    # Duplicate finder + lossless media optimizer (whiptail/fzf TUI)
 │   ├── Kbuild.sh          # Kernel build helper
 │   ├── pi-minify.sh       # System minimization helper
 │   ├── pi_hole_updater.sh
