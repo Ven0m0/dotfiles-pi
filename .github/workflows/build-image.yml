@@ -22,6 +22,7 @@ jobs:
       DIETPI_IMAGE_URL: https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz
       DIETPI_SHA256_URL: https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz.sha256
       DIETPI_SOURCE_IMAGE: build/cache/DietPi_RPi234-ARMv8-Bookworm.img.xz
+      DIETPI_SOURCE_IMG: build/cache/DietPi_RPi234-ARMv8-Bookworm.img
       DIETPI_OUTPUT_IMAGE: build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img
     steps:
       - name: Checkout repository
@@ -55,6 +56,9 @@ jobs:
             echo 'Set AUTO_SETUP_GLOBAL_PASSWORD in dietpi.txt before building an image.' >&2
             exit 1
           fi
+
+      - name: Decompress DietPi base image
+        run: xz -dkf "$DIETPI_SOURCE_IMAGE"
 
       - name: Customize image with pimod
         uses: Nature40/pimod@v0.9.1

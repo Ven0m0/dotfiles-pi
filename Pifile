@@ -1,6 +1,6 @@
 # Custom DietPi image build for this repository.
 # Partition 2 is the DietPi root filesystem in the official Raspberry Pi image layout.
-FROM "${DIETPI_SOURCE_IMAGE:-build/cache/DietPi_RPi234-ARMv8-Bookworm.img.xz}" 2
+FROM "${DIETPI_SOURCE_IMG:-build/cache/DietPi_RPi234-ARMv8-Bookworm.img}" 2
 TO "${DIETPI_OUTPUT_IMAGE:-build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img}"
 
 # Give the image headroom for package installs before shrinking it again.
