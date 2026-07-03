@@ -111,7 +111,7 @@ Options:
                         (Pi-hole, PiApps, apt-fast, deb-get, eget, pacstall)
   -m, --minimal        Core optimizations only (no extra tooling)
   -i, --insecure-ssh   Enable insecure SSH (root login + password auth)
-  -p, --pihole         Install Pi-hole (official installer, interactive)
+  -p, --pihole         Install Pi-hole (official installer, unattended, wired-only)
   -n, --nextcloud      Install & set up Nextcloud (DietPi only, via dietpi-software;
                         uses SOFTWARE_NEXTCLOUD_USERNAME/AUTO_SETUP_GLOBAL_PASSWORD
                         from dietpi.txt)
@@ -370,8 +370,14 @@ install_external() {
 
   if ((cfg[pihole])); then
     if ! has pihole; then
-      warn "Pi-hole installer is interactive - proceeding"
-      run_url_sudo "https://install.pi-hole.net"
+      log "Installing Pi-hole (unattended)"
+      # Pi-hole's installer shows an interface-selection dialog whenever more than one
+      # network interface is present; with exactly one it auto-selects without prompting.
+      # Force wired-only so that holds on boards with both eth0 and wlan0.
+      run sudo ip link set wlan0 down 2>/dev/null || :
+      if ! run_url_sudo "https://install.pi-hole.net" --unattended; then
+        err "Pi-hole unattended install failed - install manually: curl -fsSL https://install.pi-hole.net | sudo bash"
+      fi
     else
       log "Pi-hole already installed"
     fi
