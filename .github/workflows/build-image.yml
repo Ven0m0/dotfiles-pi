@@ -25,14 +25,14 @@ jobs:
       DIETPI_OUTPUT_IMAGE: build/output/dotfiles-pi-DietPi_RPi234-ARMv8-Bookworm.img
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Prepare build directories
         run: mkdir -p build/cache build/mnt/boot build/output
 
       - name: Cache DietPi base image
         id: cache-base-image
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ env.DIETPI_SOURCE_IMAGE }}
           key: dietpi-base-${{ runner.os }}-${{ env.DIETPI_IMAGE_NAME }}
