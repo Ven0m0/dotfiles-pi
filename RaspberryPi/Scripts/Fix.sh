@@ -8,22 +8,18 @@ IFS=$'\n\t' LC_ALL=C DEBIAN_FRONTEND=noninteractive
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
 # Colors
-BLK=$'\e[30m' RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m'
-BLU=$'\e[34m' MGN=$'\e[35m' CYN=$'\e[36m' WHT=$'\e[37m'
-LBLU=$'\e[38;5;117m' PNK=$'\e[38;5;218m' BWHT=$'\e[97m'
+RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m'
 DEF=$'\e[0m' BLD=$'\e[1m'
 # Core helpers
 has() { command -v -- "$1" &>/dev/null; }
-xecho() { printf '%b\n' "$*"; }
-log() { xecho "${GRN}▶${DEF} $*"; }
-warn() { xecho "${YLW}⚠${DEF} $*" >&2; }
-err() { xecho "${RED}✗${DEF} $*" >&2; }
+pkg_installed() { [[ $(dpkg-query -W -f='${db:Status-Status}' "$1" 2>/dev/null) == installed ]]; }
+log() { printf '%b\n' "${GRN}▶${DEF} $*"; }
+warn() { printf '%b\n' "${YLW}⚠${DEF} $*" >&2; }
+err() { printf '%b\n' "${RED}✗${DEF} $*" >&2; }
 die() {
   err "$1"
   exit "${2:-1}"
 }
-# Find files/directories with fd/fdfind/find fallback
-# Simplified to just use find for reliability in fix scripts
 
 usage() {
   cat <<'EOF'
@@ -65,9 +61,9 @@ parse_args() {
 # Time synchronization
 fix_time_sync() {
   log "Fixing time synchronization"
-  if ! dpkg -l | grep -q ntpdate; then
+  if ! pkg_installed ntpdate; then
     sudo apt-get update -qq
-    sudo apt-get install -y ntpdate || warn "Failed to install ntpdate"
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ntpdate || warn "Failed to install ntpdate"
   fi
   if has ntpdate; then
     sudo ntpdate -u ntp.ubuntu.com || warn "Failed to sync time with ntp.ubuntu.com"
@@ -77,9 +73,9 @@ fix_time_sync() {
 # CA certificates
 fix_ca_certificates() {
   log "Ensuring CA certificates are installed"
-  if ! dpkg -l | grep -q ca-certificates; then
+  if ! pkg_installed ca-certificates; then
     sudo apt-get update -qq
-    sudo apt-get install -y ca-certificates || warn "Failed to install ca-certificates"
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates || warn "Failed to install ca-certificates"
   else
     log "CA certificates already installed"
   fi

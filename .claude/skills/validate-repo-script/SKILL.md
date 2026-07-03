@@ -1,7 +1,7 @@
 ---
 name: validate-repo-script
-description: Run this repo's (dotfiles-pi) Bash validation recipe from AGENTS.md — bash -n plus shellcheck — against one script, a list of scripts, or every tracked *.sh file. Use when asked to "validate", "check", or "lint" scripts in this repo, before claiming a script change is done, or before a commit that touches .sh files. A PostToolUse hook already runs this per-edit; use this skill for a full/batch pass instead.
-allowed-tools: Read, Bash, Glob
+description: Run this repo's (dotfiles-pi) Bash validation recipe from AGENTS.md — bash -n, shellcheck, and a bash-language-server parse check — against one script, a list of scripts, or every tracked *.sh file. Use when asked to "validate", "check", or "lint" scripts in this repo, before claiming a script change is done, or before a commit that touches .sh files. A PostToolUse hook already runs this per-edit; use this skill for a full/batch pass instead.
+allowed-tools: Read, Bash, Glob, LSP
 ---
 
 # Validate Repo Script
@@ -26,18 +26,23 @@ exists so that recipe doesn't have to be re-derived from `AGENTS.md` by hand eac
    installed, note that and still run the bash -n checks") — do not silently skip it or treat its
    absence as a pass.
 
-3. **Classify shellcheck output by severity**, not just pass/fail:
+3. **Sanity-check each script parses cleanly under `bash-language-server`.** It has no standalone
+   CLI lint mode (only `start`, which speaks LSP over stdio), so drive it through the `LSP` tool
+   (e.g. `documentSymbol` on the file) rather than a shell command. It wraps `shellcheck`
+   internally, but a parse failure here can surface issues `bash -n`/`shellcheck` miss.
+
+4. **Classify shellcheck output by severity**, not just pass/fail:
    - Any `(error)` finding → the script fails validation.
    - `(warning)` findings → flag them, but they don't block; note if they look like a real bug
      (e.g. `SC2034` on a variable that's actually used via `sudo VAR=val cmd` elsewhere, or
      `SC2154`) versus genuinely cosmetic.
    - `(info)`/`(style)` findings → summarize the count, don't enumerate each one unless asked.
 
-4. **Report per-script**: pass/fail, and if failed, the specific `bash -n` syntax error or
+5. **Report per-script**: pass/fail, and if failed, the specific `bash -n` syntax error or
    shellcheck `(error)`-level finding with file:line. Don't just say "shellcheck failed" — quote
    the actual finding.
 
-5. **Roll up a summary line** at the end: `N/M scripts pass (bash -n clean, no shellcheck errors)`.
+6. **Roll up a summary line** at the end: `N/M scripts pass (bash -n clean, no shellcheck errors)`.
 
 ## Notes specific to this repo
 

@@ -40,8 +40,7 @@ dotfiles-pi/
 │   ├── agents/bash-reviewer.md
 │   └── skills/            ← server-management, validate-repo-script, check-dietpi-config
 └── RaspberryPi/           ← scripts migrated from Ven0m0/Linux-OS
-    ├── f2fs-new.sh        ← F2FS conversion for SD card longevity
-    ├── raspi-f2fs.sh      ← alternative F2FS helper
+    ├── f2fs-convert.sh    ← F2FS conversion for SD card longevity (image file or device target)
     ├── update.sh          ← automated system updates
     ├── PiClean.sh         ← system cleanup
     ├── dietpi-chroot.sh   ← DietPi chroot helper
@@ -101,6 +100,12 @@ shellcheck RaspberryPi/<script>.sh
 ```
 
 If `shellcheck` is not installed, note that and still run the `bash -n` checks.
+
+Also sanity-check edited scripts parse cleanly under `bash-language-server`. It has no
+standalone CLI lint mode — only `start`, which speaks LSP over stdio — so drive it through
+Claude Code's `LSP` tool (e.g. `documentSymbol` on the file) rather than a shell command. It
+wraps `shellcheck` internally for diagnostics, but a parse failure here can catch issues
+`bash -n`/`shellcheck` miss.
 
 ## Documentation expectations
 

@@ -352,7 +352,11 @@ install_package_managers() {
   fi
   if ! has deb-get; then
     apt_get install curl lsb-release wget
-    run_url_sudo "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get" "install" "deb-get"
+    # deb-get's self-install fetches its own release metadata from the GitHub API, which can
+    # rate-limit or blip; deb-get is optional tooling (see usage()), so don't let that abort
+    # the rest of setup.sh.
+    run_url_sudo "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get" "install" "deb-get" \
+      || warn "deb-get bootstrap failed (possibly a GitHub API rate limit); continuing without it"
   fi
   if ! has eget; then
     run_url "https://zyedidia.github.io/eget.sh"

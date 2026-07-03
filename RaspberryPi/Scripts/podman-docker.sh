@@ -5,12 +5,13 @@ shopt -s nullglob globstar
 IFS=$'\n\t' LC_ALL=C DEBIAN_FRONTEND=noninteractive
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
+has() { command -v -- "$1" &>/dev/null; }
 
-yes | sudo apt-get update -y --fix-missing
-yes | sudo apt-get upgrade -y
+sudo env DEBIAN_FRONTEND=noninteractive apt-get update -y --fix-missing
+sudo env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
 setup_podman() {
-  sudo apt-get install -y podman podman-docker
+  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y podman podman-docker
   sudo touch /etc/containers/nodocker
   sudo systemctl daemon-reload
   sudo systemctl enable --now podman.socket
@@ -42,16 +43,14 @@ EOF
   sudo systemctl daemon-reload &>/dev/null || :
   sudo systemctl enable --now docker.service &>/dev/null || :
   # podman-compose: try apt first, otherwise pip (user install)
-  if ! command -v podman-compose &>/dev/null; then
-    sudo apt-get install -y podman-compose &>/dev/null || :
+  if ! has podman-compose; then
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y podman-compose &>/dev/null || :
   fi
-  if ! command -v podman-compose &>/dev/null; then
+  if ! has podman-compose; then
     uv pip install -U podman-compose || python3 -m pip install --upgrade --user podman-compose
     ln -sf /root/.local/bin/podman-compose /usr/local/bin/podman-compose || :
   fi
-  if ! command -v docker &>/dev/null; then
-    printf 'warning: docker CLI not found; podman-docker package likely failed to install\n' >&2
-  fi
+  has docker || printf 'warning: docker CLI not found; podman-docker package likely failed to install\n' >&2
   export DOCKER_HOST=unix:///run/podman/podman.sock
   # final: friendly status lines
   printf 'podman.socket: %s\n' "$(systemctl is-active podman.socket 2>/dev/null || echo inactive)"
@@ -80,7 +79,7 @@ EOF
   echo "Enabling Docker service..."
   sudo systemctl enable --now docker
   echo "Adding user to docker group..."
-  sudo groupadd docker
+  sudo groupadd docker 2>/dev/null || :
   sudo usermod -aG docker "$USER"
   sudo systemctl enable docker.service
   sudo systemctl enable containerd.service

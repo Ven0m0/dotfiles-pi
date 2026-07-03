@@ -8,9 +8,7 @@ cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
 # DESCRIPTION: Raspberry Pi system optimization suite
 sync
 # Colors
-BLK=$'\e[30m' RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m'
-BLU=$'\e[34m' MGN=$'\e[35m' CYN=$'\e[36m' WHT=$'\e[37m'
-LBLU=$'\e[38;5;117m' PNK=$'\e[38;5;218m' BWHT=$'\e[97m'
+RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m' LBLU=$'\e[38;5;117m'
 DEF=$'\e[0m' BLD=$'\e[1m'
 # Helpers
 has() { command -v -- "$1" &>/dev/null; }
@@ -23,7 +21,16 @@ die() {
 }
 # Config
 declare -A cfg=([dry_run]=0 [interactive]=1 [aggressive]=0 [disk_before]=0 [disk_after]=0)
-run() { ((cfg[dry_run])) && log "[DRY] $*" || "$@"; }
+run() {
+  if ((cfg[dry_run])); then
+    log "[DRY] $*"
+  else
+    "$@"
+  fi
+}
+# apt-get wrapper: keeps installs non-interactive under sudo (DEBIAN_FRONTEND is not exported
+# through sudo's environment reset otherwise) and honors --dry-run.
+apt_get() { run sudo env DEBIAN_FRONTEND=noninteractive apt-get -y "$@"; }
 # Disk usage tracking
 track_disk() {
   local label="$1" usage
@@ -113,41 +120,41 @@ purge_docs() {
 # Package Cleanup
 purge_packages() {
   log "Removing doc packages, localepurge install"
-  has localepurge || sudo apt-get install -y localepurge
+  has localepurge || apt_get install localepurge
   run localepurge
   # Cache dpkg output once for multiple filters (avoid 3 separate dpkg calls)
   local dpkg_out current_kernel doc_pkgs old_kernels orphaned
   mapfile -t dpkg_out < <(dpkg -l) || die "Failed to get package list from dpkg"
   mapfile -t doc_pkgs < <(printf '%s\n' "${dpkg_out[@]}" | awk '/-doc$/ {print $2}')
-  ((${#doc_pkgs[@]} > 0)) && sudo apt-get purge -y "${doc_pkgs[@]}" || :
-  sudo apt-get purge -y '*texlive*' 2>/dev/null || :
+  ((${#doc_pkgs[@]} > 0)) && apt_get purge "${doc_pkgs[@]}" || :
+  apt_get purge '*texlive*' 2>/dev/null || :
   current_kernel=$(uname -r)
   mapfile -t old_kernels < <(printf '%s\n' "${dpkg_out[@]}" | awk -v ck="$current_kernel" '$2 ~ /^linux-image-.*-generic$/ && $2 != ck {print $2}')
   ((${#old_kernels[@]} > 0)) && {
     log "Purging old kernels (keeping ${current_kernel})"
-    sudo apt-get purge -y "${old_kernels[@]}"
+    apt_get purge "${old_kernels[@]}"
   }
   mapfile -t orphaned < <(printf '%s\n' "${dpkg_out[@]}" | awk '/^rc/ {print $2}')
-  ((${#orphaned[@]} > 0)) && sudo apt-get purge -y "${orphaned[@]}" || :
+  ((${#orphaned[@]} > 0)) && apt_get purge "${orphaned[@]}" || :
 }
 purge_aggressive() {
   ((cfg[aggressive] == 0)) && return 0
   warn "Aggressive mode: removing X11, dev packages, extras"
-  sudo apt-get purge -y libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 2>/dev/null || :
-  sudo apt-get purge -y popularity-contest installation-report wireless-tools wpasupplicant libraspberrypi-doc snapd 'cups*' 2>/dev/null || :
+  apt_get purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 2>/dev/null || :
+  apt_get purge popularity-contest installation-report wireless-tools wpasupplicant libraspberrypi-doc snapd 'cups*' 2>/dev/null || :
 }
 cleanup_apt() {
   log "APT cleanup: cache, orphans, deborphan"
-  has deborphan || sudo apt-get install -y deborphan
-  sudo apt-get autoremove --purge -y
-  sudo apt-get autoclean -y
-  sudo apt-get clean -y
+  has deborphan || apt_get install deborphan
+  apt_get autoremove --purge
+  apt_get autoclean
+  apt_get clean
   local orphans
-  while mapfile -t orphans < <(deborphan) && ((${#orphans[@]} > 0)); do sudo apt-get purge -y "${orphans[@]}"; done
+  while mapfile -t orphans < <(deborphan) && ((${#orphans[@]} > 0)); do apt_get purge "${orphans[@]}"; done
 }
 debloat() {
-  systemctl disable --now systemd-binfmt proc-sys-fs-binfmt_misc.automount sys-fs-fuse-connections.mount sys-kernel-config.mount
-  systemctl mask systemd-binfmt proc-sys-fs-binfmt_misc.automount sys-fs-fuse-connections.mount sys-kernel-config.mount
+  run sudo systemctl disable --now systemd-binfmt proc-sys-fs-binfmt_misc.automount sys-fs-fuse-connections.mount sys-kernel-config.mount
+  run sudo systemctl mask systemd-binfmt proc-sys-fs-binfmt_misc.automount sys-fs-fuse-connections.mount sys-kernel-config.mount
 }
 # Cache & Temp Cleanup
 clean_caches() {

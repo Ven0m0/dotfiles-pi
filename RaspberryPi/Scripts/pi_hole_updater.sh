@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Script Name: pi_hole_updater.sh
 # Description: Robust Pi-hole + System updater for Raspberry Pi OS or Debian-based systems.
 # https://github.com/r0xd4n3t/pi-hole-maintenance
 # Author: r0xd4n3t
 # Date: 02 JUL 2025
+
+# Deliberately no `set -e`: every apt-get/pihole step below checks its own exit status via
+# PIPESTATUS and logs a specific error, then keeps going (e.g. still checks for a pending
+# reboot even if the Pi-hole update failed). `set -e` would abort mid-chain before those
+# checks run.
+set -uo pipefail
+has() { command -v -- "$1" &>/dev/null; }
 
 # Check for root
 if [[ "$(id -u)" -ne 0 ]]; then
@@ -11,21 +18,21 @@ if [[ "$(id -u)" -ne 0 ]]; then
   exit 1
 fi
 
+# Log setup
+LOG_FILE="/var/log/pi-hole-updater.log"
+MAX_OLD_LOGS=5
+
 # Verify OS
 if [[ -f /etc/os-release ]]; then
   source /etc/os-release
   if [[ ${ID:-} != "raspbian" && ${ID_LIKE:-} != *"debian"* ]]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') | OS '${PRETTY_NAME:-$NAME}' not supported. Exiting." >>logs.log
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | OS '${PRETTY_NAME:-$NAME}' not supported. Exiting." >>"$LOG_FILE"
     exit 0
   fi
 else
-  echo "$(date '+%Y-%m-%d %H:%M:%S') | OS verification failed. Exiting." >>logs.log
+  echo "$(date '+%Y-%m-%d %H:%M:%S') | OS verification failed. Exiting." >>"$LOG_FILE"
   exit 0
 fi
-
-# Log setup
-LOG_FILE="logs.log"
-MAX_OLD_LOGS=5
 
 if [[ -f $LOG_FILE ]]; then
   if [[ -f "${LOG_FILE}.${MAX_OLD_LOGS}" ]]; then
@@ -75,7 +82,7 @@ else
 fi
 
 # Update Pi-hole if available
-if command -v pihole >/dev/null 2>&1; then
+if has pihole; then
   log "Pi-hole is installed. Updating..."
   pihole -up 2>&1 | timestamp_output | tee -a "$LOG_FILE"
   pihole_update_status=${PIPESTATUS[0]}

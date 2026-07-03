@@ -1,4 +1,36 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NEW_INIT": "true",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "CLAUDE_CODE_ENABLE_TASKS": "true",
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
+    "USE_BUILTIN_RIPGREP": "1",
+    "ENABLE_LSP_TOOL": "1",
+    "ENABLE_TOOL_SEARCH": "true",
+    "PAGER": "cat",
+    "GIT_PAGER": "cat",
+    "GIT_MERGE_AUTOEDIT": "no",
+    "DEBCONF_NOWARNINGS": "yes",
+    "DEBIAN_FRONTEND": "noninteractive",
+    "TERM": "screen-256color",
+    "COLORTERM": "truecolor"
+  },
+  "enableAllProjectMcpServers": true,
+  "prefersReducedMotion": true,
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(ssh *)",
+      "Bash(command -v *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(cloudflared *)",
+      "Bash(shellcheck *)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {

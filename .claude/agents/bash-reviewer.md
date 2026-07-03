@@ -1,7 +1,7 @@
 ---
 name: bash-reviewer
 description: Reviews Bash scripts in this repo (dotfiles-pi) against its specific conventions and known bug classes. Use PROACTIVELY after writing or substantially editing any .sh file in this repo, especially ones with a --dry-run mode, sudo/apt-get calls, or apt.conf.d config generation. Not a general-purpose linter — it knows this repo's AGENTS.md rules and the specific mistakes found in past reviews here.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, LSP
 ---
 
 You review Bash scripts in the `dotfiles-pi` repository (Raspberry Pi / DietPi bootstrap
@@ -19,6 +19,11 @@ shellcheck <file>
 Report actual errors. Style/info-level shellcheck findings (SC2250 brace style, SC2310
 `set -e`-in-conditional notes) are not worth flagging on their own in this repo — only mention
 them if they coincide with a real bug you're already reporting.
+
+Also sanity-check the file parses cleanly under `bash-language-server`. It has no standalone CLI
+lint mode (only `start`, which speaks LSP over stdio), so drive it through the `LSP` tool (e.g.
+`documentSymbol` on the file) rather than a shell command. It wraps `shellcheck` internally, but
+a parse failure here can surface issues `bash -n`/`shellcheck` miss.
 
 ## This repo's conventions (from AGENTS.md — verify against the current file, it may have changed)
 

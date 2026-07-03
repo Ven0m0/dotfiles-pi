@@ -2,13 +2,14 @@
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR
 set -euo pipefail
 shopt -s nullglob globstar
-IFS=$'\n\t' LC_ALL=C DEBIAN_FRONTEND=noninteractive
+IFS=$'\n\t'
+export LC_ALL=C DEBIAN_FRONTEND=noninteractive
 # Build and install Raspberry Pi kernel from source
 # WARNING: This script will reboot the system after kernel installation
 # Colors
 RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m' BLU=$'\e[34m' DEF=$'\e[0m'
 # Helpers
-has() { command -v "$1" &>/dev/null; }
+has() { command -v -- "$1" &>/dev/null; }
 log() { printf '%s\n' "${BLU}→${DEF} $*"; }
 warn() { printf '%s\n' "${YLW}WARN:${DEF} $*"; }
 err() { printf '%s\n' "${RED}ERROR:${DEF} $*" >&2; }
@@ -18,8 +19,7 @@ die() {
 }
 
 confirm() {
-  local prompt=${1:-"Continue?"} default=${2:-n}
-  local yn
+  local prompt=${1:-"Continue?"} yn
   read -rp "$prompt [y/N] " yn
   [[ ${yn,,} == y* ]]
 }
@@ -126,14 +126,9 @@ main() {
 
   log "${GRN}Kernel installed successfully${DEF}"
 
-  _confirm_reboot() {
-    if [[ ${AUTO_YES:-0} -eq 1 || ! -t 0 ]]; then
-      return 0
-    fi
-    read -r -p "$(warn 'Reboot now to load the new kernel? [y/N]: ')" _ans
-    [[ ${_ans,,} == y ]] || { log "Reboot skipped. Run: sudo reboot"; exit 0; }
-  }
-  _confirm_reboot
+  if ((!AUTO_YES)) && [[ -t 0 ]]; then
+    confirm "Reboot now to load the new kernel?" || { log "Reboot skipped. Run: sudo reboot"; exit 0; }
+  fi
   warn "Rebooting in 10 seconds... (Ctrl+C to cancel)"
   sleep 10
   systemctl reboot -q || reboot
