@@ -25,11 +25,9 @@ dotfiles-pi/
 ├── dietpi-wifi.txt         ← optional WiFi credentials template; injected if present (keep credential fields blank in git)
 ├── docs/
 │   ├── PLAN.md            ← image-build automation plan (future work)
-│   └── raspberrypi/
-│       ├── README.md / QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md
-│       └── reference/REFERENCES.md
-├── README.md              ← repo overview
-├── custom-instructions/   ← shared custom instruction profiles
+│   ├── QUICKSTART.md / EXAMPLES.md / DIETPI_F2FS_GUIDE.md  ← F2FS conversion guides
+│   └── reference/REFERENCES.md
+├── README.md              ← repo overview, showcase, and setup tutorial
 ├── renovate.json          ← Renovate dependency-update config
 ├── apps.sh                ← apt/PPA bootstrap helper
 ├── mise.sh                ← installs mise via apt keyring + apt repo
@@ -38,7 +36,9 @@ dotfiles-pi/
 │   └── workflows/
 │       └── build-image.yml  ← GitHub Actions DietPi image build/release workflow
 ├── .claude/
-│   └── skills/server-management/SKILL.md  ← generic Claude skill (not repo policy)
+│   ├── settings.json      ← hooks: shellcheck-on-edit, wifi-credential commit guard
+│   ├── agents/bash-reviewer.md
+│   └── skills/            ← server-management, validate-repo-script, check-dietpi-config
 └── RaspberryPi/           ← scripts migrated from Ven0m0/Linux-OS
     ├── f2fs-new.sh        ← F2FS conversion for SD card longevity
     ├── raspi-f2fs.sh      ← alternative F2FS helper

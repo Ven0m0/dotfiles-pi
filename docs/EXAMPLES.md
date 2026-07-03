@@ -131,6 +131,9 @@ sudo ./raspi-f2fs.sh -i ~/dietpi.img.xz -d /dev/mmcblk0 -s -z -b 512M
 - `-z`: Shrink image before flashing
 - `-b SIZE`: Set boot partition size
 - `-k`: Keep source image (don't delete after use)
+- `-n`: Dry run — print what would happen without writing anything
+- `-U`: Skip the USB-device safety check (only needed if your target isn't detected as USB/removable)
+- `-F`: Skip the destination-size check (only needed if you know a smaller target is still large enough)
 
 ### 7. Post-Conversion Customization
 
@@ -240,21 +243,31 @@ sudo dd if=/tmp/test-f2fs.img of=/dev/mmcblk0 bs=4M conv=fsync status=progress
 
 **Scenario:** Pi won't boot after F2FS conversion
 
+`dietpi-chroot.sh` only accepts a disk **image file** (it runs `losetup -P` and `parted` against
+it directly) — not a raw partition device like `/dev/mmcblk0p2`. If the failure is on a live SD
+card rather than an image you still have on disk, image the card first with `dd` before chrooting:
+
 ```bash
+# If you only have the live SD card, image it first
+sudo dd if=/dev/mmcblk0 of=~/recovery.img bs=4M conv=fsync status=progress
+
 # Method 1: Regenerate initramfs
-sudo ./dietpi-chroot.sh /dev/mmcblk0p2  # Or image file
+sudo ./dietpi-chroot.sh ~/recovery.img
 
 # Inside chroot:
 update-initramfs -u
 exit
 
 # Method 2: Check F2FS module
-sudo ./dietpi-chroot.sh /dev/mmcblk0p2
+sudo ./dietpi-chroot.sh ~/recovery.img
 
 # Inside chroot:
 echo "f2fs" >> /etc/initramfs-tools/modules
 update-initramfs -u
 exit
+
+# Write the repaired image back
+sudo dd if=~/recovery.img of=/dev/mmcblk0 bs=4M conv=fsync status=progress
 ```
 
 ### 12. Debugging with Serial Console
@@ -351,6 +364,12 @@ sudo ./f2fs-new.sh -i  # Interactive mode
 mount | grep "on / type f2fs"
 
 # Then deploy to others
+```
+
+For `raspi-f2fs.sh` specifically, preview the exact steps with `-n` before writing anything:
+
+```bash
+sudo ./raspi-f2fs.sh -i dietpi -d /dev/mmcblk0 -n
 ```
 
 ### Tip 2: Keep Master Images

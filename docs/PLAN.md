@@ -123,17 +123,22 @@ jobs:
 | mise + dev tools | `mise.sh` | Sourced inside Pifile `RUN` step |
 | Shell dotfiles | `RaspberryPi/dots/` | Copied via Pifile `COPY` step |
 | F2FS tooling | `RaspberryPi/f2fs-new.sh` | `f2fs-tools` installed; script embedded |
-| System hardening | `RaspberryPi/Scripts/setup.sh` | Run non-interactively inside Pifile |
-| DietPi first-boot | `dietpi.txt` template (to be created) | Written to `/boot` partition |
+| System hardening | `RaspberryPi/Scripts/setup.sh` | Staged into the image by Pifile; run manually post-boot (not auto-run at build time) |
+| DietPi first-boot | `dietpi.txt` (and optional `dietpi-wifi.txt`) | Injected into `/boot` by `build-image.yml` |
 
 ---
 
 ## Open Items
 
-- [ ] Create `Pifile` at repo root (or `build/Pifile`).
-- [ ] Create `dietpi.txt` template with sensible defaults and inline comments.
-- [ ] Create `.github/workflows/build-image.yml` GitHub Actions workflow.
-- [ ] Decide on target board(s): RPi 4, RPi 5, RPi Zero 2 W, or all three.
-- [ ] Decide whether to publish releases publicly or keep artifacts private.
-- [ ] Evaluate QEMU smoke-test feasibility (`piqemu-action`) for CI gating.
-- [ ] Pin DietPi base image version (or always track `latest` stable).
+- [x] Create `Pifile` at repo root (or `build/Pifile`).
+- [x] Create `dietpi.txt` template with sensible defaults and inline comments.
+- [x] Create `.github/workflows/build-image.yml` GitHub Actions workflow.
+- [x] Decide on target board(s): RPi 2/3/4/Zero 2 W, ARMv8 (see `build-image.yml`'s
+      `DIETPI_IMAGE_NAME`/`DIETPI_IMAGE_URL`).
+- [x] Decide whether to publish releases publicly or keep artifacts private: public GitHub
+      Releases, triggered on `v*` tags.
+- [x] Pin DietPi base image version (or always track `latest` stable): pinned to the Bookworm
+      `DietPi_RPi234-ARMv8-Bookworm.img.xz` release.
+- [ ] Evaluate QEMU smoke-test feasibility (`piqemu-action`) for CI gating: evaluated and
+      deferred — `build-image.yml` currently ships images without CI gating until a reliable
+      QEMU runner path exists (see its inline comment). Still open if that path materializes.

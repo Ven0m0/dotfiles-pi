@@ -56,4 +56,4 @@ sudo ./dietpi-chroot.sh /path/to/image.img
 
 - Read [DIETPI_F2FS_GUIDE.md](DIETPI_F2FS_GUIDE.md) for detailed notes.
 - Read [EXAMPLES.md](EXAMPLES.md) for additional command patterns.
-- Review [../../dietpi.txt](../../dietpi.txt) before first boot automation.
+- Review [../dietpi.txt](../dietpi.txt) before first boot automation.
