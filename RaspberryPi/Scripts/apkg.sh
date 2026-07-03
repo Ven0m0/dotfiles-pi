@@ -11,7 +11,15 @@ cd "${SCRIPT_DIR}" && SCRIPT_DIR="$(pwd -P)" || exit 1
 #           backup/restore, prefetching, optional apt-fast bootstrap
 # Inlined common functions
 has() { command -v -- "$1" &>/dev/null; }
-load_dietpi_globals() { [[ -f /boot/dietpi/func/dietpi-globals ]] && . "/boot/dietpi/func/dietpi-globals" &>/dev/null || :; }
+# dietpi-globals reads variables like $G_INTERACTIVE before ever assigning them and isn't
+# written to be `set -u` safe; it dies on "unbound variable" the first time a fresh (non-login)
+# shell sources it, and since output is suppressed below that error is otherwise invisible.
+load_dietpi_globals() {
+  [[ -f /boot/dietpi/func/dietpi-globals ]] || return 0
+  set +u
+  . /boot/dietpi/func/dietpi-globals &>/dev/null
+  set -u
+}
 load_dietpi_globals
 # Colors
 RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m' DEF=$'\e[0m' BLD=$'\e[1m'
