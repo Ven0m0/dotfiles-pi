@@ -5,9 +5,10 @@ Bootstrap scripts, dotfiles, and image-build inputs for Raspberry Pi, Debian, an
 ## Key Components
 
 - **[RaspberryPi/](RaspberryPi/)**: Active Raspberry Pi and DietPi scripts, dotfiles, and build helpers.
+  - **[Scripts/setup.sh](RaspberryPi/Scripts/setup.sh)**: Post-boot Debian/DietPi setup — APT/dpkg tuning, doc/log cleanup, hardening, modern CLI tooling (fd, rg, bat, eza, zoxide, python3, nodejs, uv, bun), and opt-in Pi-hole/Nextcloud installs (see `-h` for flags).
 - **[docs/raspberrypi/](docs/raspberrypi/)**: Raspberry Pi usage guides and reference notes.
 - **[docs/PLAN.md](docs/PLAN.md)**: High-level plan for the custom DietPi image workflow.
-- **[Pifile](Pifile)** and **[dietpi.txt](dietpi.txt)**: Image customization and first-boot automation inputs for DietPi builds.
+- **[Pifile](Pifile)**, **[dietpi.txt](dietpi.txt)**, and **[dietpi-wifi.txt](dietpi-wifi.txt)**: Image customization, first-boot automation, and (optional) WiFi credentials for DietPi builds.
 - **[.github/workflows/build-image.yml](.github/workflows/build-image.yml)**: GitHub Actions workflow for building and releasing custom DietPi images.
 - **[apps.sh](apps.sh)**: APT/PPA bootstrap helper.
 - **[mise.sh](mise.sh)**: `mise` installer.
