@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:;">
+<title>DietPi Automation Config Builder</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #1a1a2e;
+  --bg-light: #16213e;
+  --bg-card: #1f2b47;
+  --bg-input: #0f1729;
+  --border: #2a3a5c;
+  --border-focus: #4a9eff;
+  --text: #e0e0e0;
+  --text-muted: #8899aa;
+  --accent: #4a9eff;
+  --accent-hover: #3a8eef;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --danger: #f44336;
+  --sidebar-w: 260px;
+  --header-h: 56px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Header */
+.header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); background: var(--bg-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; z-index: 100; }
+.header h1 { font-size: 1.2rem; font-weight: 600; }
+.header h1 span { color: var(--accent); }
+.header-actions { margin-left: auto; display: flex; gap: 8px; }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; margin-right: 12px; }
+
+/* Sidebar */
+.sidebar { position: fixed; top: var(--header-h); left: 0; width: var(--sidebar-w); height: calc(100vh - var(--header-h)); background: var(--bg-light); border-right: 1px solid var(--border); overflow-y: auto; z-index: 90; transition: transform 0.3s; }
+.sidebar-nav { padding: 12px 0; }
+.sidebar-nav a { display: block; padding: 8px 20px; color: var(--text-muted); font-size: 0.85rem; transition: all 0.15s; border-left: 3px solid transparent; }
+.sidebar-nav a:hover, .sidebar-nav a.active { color: var(--text); background: rgba(74,158,255,0.08); border-left-color: var(--accent); text-decoration: none; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); margin-top: var(--header-h); padding: 24px; max-width: 900px; }
+
+/* Sections */
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; }
+.section-header h2 { font-size: 1rem; font-weight: 600; flex: 1; }
+.section-header .chevron { transition: transform 0.2s; color: var(--text-muted); font-size: 0.8rem; }
+.section-header .chevron.open { transform: rotate(90deg); }
+.section-body { padding: 0 20px 20px; display: none; }
+.section-body.open { display: block; }
+
+/* Form */
+.field { margin-bottom: 16px; }
+.field:last-child { margin-bottom: 0; }
+.field-row { display: flex; gap: 16px; }
+.field-row > .field { flex: 1; }
+label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+label .key { color: var(--accent); font-family: monospace; font-size: 0.8rem; }
+label .info-link { margin-left: 6px; color: var(--text-muted); font-size: 0.75rem; cursor: help; }
+label .info-link:hover { color: var(--accent); }
+input[type="text"], input[type="number"], input[type="password"], select, textarea {
+  width: 100%; padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-size: 0.9rem; font-family: inherit;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--border-focus); }
+input.invalid, select.invalid { border-color: var(--danger); }
+textarea { resize: vertical; min-height: 60px; font-family: monospace; font-size: 0.85rem; }
+select { cursor: pointer; }
+
+.toggle-group { display: flex; gap: 0; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.toggle-group label { margin: 0; padding: 6px 16px; background: var(--bg-input); cursor: pointer; font-size: 0.85rem; color: var(--text-muted); border-right: 1px solid var(--border); transition: all 0.15s; white-space: nowrap; }
+.toggle-group label:last-child { border-right: none; }
+.toggle-group input { display: none; }
+.toggle-group input:checked + span { color: var(--text); }
+.toggle-group label:has(input:checked) { background: var(--accent); color: #fff; }
+.toggle-group label:has(input:checked) span { color: #fff; }
+
+.password-field { display: flex; gap: 8px; }
+.password-field input { flex: 1; }
+.btn-sm { padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: all 0.15s; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #43a047; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+.help-text { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
+.validation-msg { font-size: 0.78rem; color: var(--danger); margin-top: 3px; display: none; }
+.validation-msg.show { display: block; }
+.hidden { display: none !important; }
+.conditional { display: none; }
+.conditional.visible { display: block; }
+
+/* Software grid */
+.software-search { margin-bottom: 12px; }
+.software-category { margin-bottom: 16px; }
+.software-category h3 { font-size: 0.9rem; color: var(--accent); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.software-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
+.software-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 4px; font-size: 0.82rem; cursor: pointer; transition: background 0.1s; }
+.software-item:hover { background: rgba(74,158,255,0.06); }
+.software-item input[type="checkbox"] { margin-top: 2px; accent-color: var(--accent); }
+.software-item .sw-id { color: var(--text-muted); font-family: monospace; min-width: 28px; }
+.software-item .sw-name { color: var(--text); }
+.software-item .sw-desc { color: var(--text-muted); font-size: 0.75rem; }
+.selected-sw { font-size: 0.85rem; color: var(--success); margin-top: 8px; }
+
+/* WiFi entries */
+.wifi-entry { background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 12px; }
+.wifi-entry h3 { font-size: 0.9rem; margin-bottom: 12px; }
+.wifi-entry .eap-fields { display: none; }
+.wifi-entry .eap-fields.visible { display: block; }
+
+/* Preview */
+.preview-panel { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; margin-top: 24px; }
+.preview-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.preview-header h3 { font-size: 0.95rem; flex: 1; }
+.preview-tabs { display: flex; gap: 0; margin-left: 12px; }
+.preview-tabs button { padding: 4px 14px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-size: 0.82rem; }
+.preview-tabs button:first-child { border-radius: 4px 0 0 4px; }
+.preview-tabs button:last-child { border-radius: 0 4px 4px 0; }
+.preview-tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.preview-content { padding: 16px; max-height: 500px; overflow: auto; }
+.preview-content pre { font-family: 'Consolas', 'Monaco', monospace; font-size: 0.8rem; white-space: pre; color: var(--text); line-height: 1.6; }
+.action-bar { display: flex; gap: 10px; flex-wrap: wrap; padding: 16px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; align-items: center; }
+.action-bar .spacer { flex: 1; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 0.85rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 800px) {
+  .hamburger { display: block; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .field-row { flex-direction: column; gap: 0; }
+  .software-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <h1><span>DietPi</span> Automation Config Builder</h1>
+  <div class="header-actions">
+    <button class="btn btn-primary" onclick="generateAndPreview()">Preview</button>
+    <button class="btn btn-success" onclick="downloadDietpiTxt()">Download dietpi.txt</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <div class="sidebar-nav" id="sidebarNav"></div>
+</nav>
+
+<main class="main" id="mainContent">
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="generateAndPreview()">Preview Config</button>
+    <button class="btn btn-success" onclick="downloadDietpiTxt()">Download dietpi.txt</button>
+    <button class="btn btn-success" id="btnDownloadWifi" onclick="downloadWifiTxt()" class="hidden">Download dietpi-wifi.txt</button>
+    <button class="btn btn-outline" onclick="downloadBoth()">Download Both</button>
+    <span class="spacer"></span>
+    <button class="btn btn-outline" onclick="resetAll()">Reset Defaults</button>
+  </div>
+
+  <!-- S1: Automation Control -->
+  <div class="section" id="sec-automation" data-nav="Automation Control">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Automation Control</h2>
+      <span class="chevron open">&#9654;</span>
+    </div>
+    <div class="section-body open">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_AUTOMATED</span> - Enable fully automated first-boot setup</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="AUTO_SETUP_AUTOMATED" value="1" checked><span>Enabled (1)</span></label>
+          <label><input type="radio" name="AUTO_SETUP_AUTOMATED" value="0"><span>Disabled (0)</span></label>
+        </div>
+        <div class="help-text">When enabled, DietPi will run a fully automated first-boot installation with no user interaction required.</div>
+      </div>
+      <div class="field">
+        <label><span class="key">SURVEY_OPTED_IN</span> - DietPi usage survey opt-in</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="SURVEY_OPTED_IN" value="1"><span>Opted In (1)</span></label>
+          <label><input type="radio" name="SURVEY_OPTED_IN" value="0"><span>Opted Out (0)</span></label>
+          <label><input type="radio" name="SURVEY_OPTED_IN" value="-1" checked><span>Not decided (-1)</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2: Network - General -->
+  <div class="section" id="sec-network-general" data-nav="Network - General">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Network - General</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_ETHERNET_ENABLED</span></label>
+          <div class="toggle-group">
+            <label><input type="radio" name="AUTO_SETUP_NET_ETHERNET_ENABLED" value="1" checked><span>Enabled</span></label>
+            <label><input type="radio" name="AUTO_SETUP_NET_ETHERNET_ENABLED" value="0"><span>Disabled</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_WIFI_ENABLED</span></label>
+          <div class="toggle-group">
+            <label><input type="radio" name="AUTO_SETUP_NET_WIFI_ENABLED" value="1"><span>Enabled</span></label>
+            <label><input type="radio" name="AUTO_SETUP_NET_WIFI_ENABLED" value="0" checked><span>Disabled</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_NET_WIFI_COUNTRY_CODE</span> - WiFi regulatory country code</label>
+        <select name="AUTO_SETUP_NET_WIFI_COUNTRY_CODE" id="wifiCountryCode">
+          <option value="GB" selected>GB - United Kingdom</option>
+          <option value="US">US - United States</option>
+          <option value="DE">DE - Germany</option>
+          <option value="FR">FR - France</option>
+          <option value="ES">ES - Spain</option>
+          <option value="IT">IT - Italy</option>
+          <option value="NL">NL - Netherlands</option>
+          <option value="AU">AU - Australia</option>
+          <option value="CA">CA - Canada</option>
+          <option value="JP">JP - Japan</option>
+          <option value="CN">CN - China</option>
+          <option value="BR">BR - Brazil</option>
+          <option value="IN">IN - India</option>
+          <option value="SE">SE - Sweden</option>
+          <option value="CH">CH - Switzerland</option>
+          <option value="AT">AT - Austria</option>
+          <option value="BE">BE - Belgium</option>
+          <option value="PL">PL - Poland</option>
+          <option value="PT">PT - Portugal</option>
+          <option value="RU">RU - Russia</option>
+          <option value="KR">KR - South Korea</option>
+          <option value="ZA">ZA - South Africa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_NET_HOSTNAME</span> - System hostname</label>
+        <input type="text" name="AUTO_SETUP_NET_HOSTNAME" value="DietPi" data-validate="hostname">
+        <div class="validation-msg">Hostname must be 1-63 characters, alphanumeric and hyphens only, cannot start/end with hyphen</div>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_NET_ETH_FORCE_SPEED</span> - Force Ethernet speed</label>
+        <select name="AUTO_SETUP_NET_ETH_FORCE_SPEED">
+          <option value="0" selected>Auto-negotiation (0)</option>
+          <option value="10">10 Mbit (10)</option>
+          <option value="100">100 Mbit (100)</option>
+          <option value="1000">1000 Mbit (1000)</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_BOOT_WAIT_FOR_NETWORK</span> - Wait for network at boot</label>
+          <div class="toggle-group">
+            <label><input type="radio" name="AUTO_SETUP_BOOT_WAIT_FOR_NETWORK" value="1" checked><span>Yes</span></label>
+            <label><input type="radio" name="AUTO_SETUP_BOOT_WAIT_FOR_NETWORK" value="0"><span>No</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_ENABLE_IPV6</span> - Enable IPv6</label>
+          <div class="toggle-group">
+            <label><input type="radio" name="CONFIG_ENABLE_IPV6" value="1"><span>Yes</span></label>
+            <label><input type="radio" name="CONFIG_ENABLE_IPV6" value="0" checked><span>No</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3: Network - Static IP -->
+  <div class="section" id="sec-network-static" data-nav="Network - Static IP">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Network - Static IP</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_NET_USESTATIC</span> - Use static IP</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="AUTO_SETUP_NET_USESTATIC" value="1"><span>Static</span></label>
+          <label><input type="radio" name="AUTO_SETUP_NET_USESTATIC" value="0" checked><span>DHCP</span></label>
+        </div>
+      </div>
+      <div id="staticIpFields" class="conditional">
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_STATIC_IP</span></label>
+          <input type="text" name="AUTO_SETUP_NET_STATIC_IP" value="" placeholder="192.168.0.100" data-validate="ip">
+          <div class="validation-msg">Enter a valid IPv4 address</div>
+        </div>
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_STATIC_MASK</span> - Subnet mask</label>
+          <input type="text" name="AUTO_SETUP_NET_STATIC_MASK" value="255.255.255.0" data-validate="ip">
+          <div class="validation-msg">Enter a valid subnet mask</div>
+        </div>
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_STATIC_GATEWAY</span></label>
+          <input type="text" name="AUTO_SETUP_NET_STATIC_GATEWAY" value="" placeholder="192.168.0.1" data-validate="ip">
+          <div class="validation-msg">Enter a valid IPv4 address</div>
+        </div>
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_NET_STATIC_DNS</span></label>
+          <input type="text" name="AUTO_SETUP_NET_STATIC_DNS" value="" placeholder="9.9.9.9">
+          <div class="help-text">Space-separated DNS server IPs</div>
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_DHCP_TO_STATIC</span> - Convert DHCP lease to static after first boot</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="AUTO_SETUP_DHCP_TO_STATIC" value="1"><span>Yes</span></label>
+          <label><input type="radio" name="AUTO_SETUP_DHCP_TO_STATIC" value="0" checked><span>No</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4: Network - Proxy -->
+  <div class="section" id="sec-network-proxy" data-nav="Network - Proxy">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Network - Proxy</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_PROXY_ADDRESS</span></label>
+          <input type="text" name="CONFIG_PROXY_ADDRESS" value="" placeholder="http://proxy.example.com">
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_PROXY_PORT</span></label>
+          <input type="text" name="CONFIG_PROXY_PORT" value="" placeholder="3128">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_PROXY_USERNAME</span></label>
+          <input type="text" name="CONFIG_PROXY_USERNAME" value="">
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_PROXY_PASSWORD</span></label>
+          <div class="password-field">
+            <input type="password" name="CONFIG_PROXY_PASSWORD" value="">
+            <button class="btn-sm" onclick="togglePasswordVis(this)" type="button">Show</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5: WiFi Configuration -->
+  <div class="section" id="sec-wifi" data-nav="WiFi Configuration">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>WiFi Configuration (dietpi-wifi.txt)</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="help-text" style="margin-bottom:12px">Configure up to 5 WiFi networks. These settings are written to <b>dietpi-wifi.txt</b>.</div>
+      <div id="wifiEntries"></div>
+      <button class="btn btn-outline" id="btnAddWifi" onclick="addWifiEntry()" type="button">+ Add WiFi Network</button>
+    </div>
+  </div>
+
+  <!-- S6: System - Locale & Regional -->
+  <div class="section" id="sec-locale" data-nav="Locale &amp; Regional">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>System - Locale &amp; Regional</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_LOCALE</span></label>
+        <select name="AUTO_SETUP_LOCALE">
+          <option value="C.UTF-8" selected>C.UTF-8 (POSIX)</option>
+          <option value="en_US.UTF-8">en_US.UTF-8</option>
+          <option value="en_GB.UTF-8">en_GB.UTF-8</option>
+          <option value="de_DE.UTF-8">de_DE.UTF-8</option>
+          <option value="fr_FR.UTF-8">fr_FR.UTF-8</option>
+          <option value="es_ES.UTF-8">es_ES.UTF-8</option>
+          <option value="it_IT.UTF-8">it_IT.UTF-8</option>
+          <option value="nl_NL.UTF-8">nl_NL.UTF-8</option>
+          <option value="pt_PT.UTF-8">pt_PT.UTF-8</option>
+          <option value="pt_BR.UTF-8">pt_BR.UTF-8</option>
+          <option value="ru_RU.UTF-8">ru_RU.UTF-8</option>
+          <option value="ja_JP.UTF-8">ja_JP.UTF-8</option>
+          <option value="ko_KR.UTF-8">ko_KR.UTF-8</option>
+          <option value="zh_CN.UTF-8">zh_CN.UTF-8</option>
+          <option value="zh_TW.UTF-8">zh_TW.UTF-8</option>
+          <option value="pl_PL.UTF-8">pl_PL.UTF-8</option>
+          <option value="sv_SE.UTF-8">sv_SE.UTF-8</option>
+          <option value="da_DK.UTF-8">da_DK.UTF-8</option>
+          <option value="fi_FI.UTF-8">fi_FI.UTF-8</option>
+          <option value="nb_NO.UTF-8">nb_NO.UTF-8</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_KEYBOARD_LAYOUT</span></label>
+        <select name="AUTO_SETUP_KEYBOARD_LAYOUT">
+          <option value="gb" selected>gb - British</option>
+          <option value="us">us - US</option>
+          <option value="de">de - German</option>
+          <option value="fr">fr - French</option>
+          <option value="es">es - Spanish</option>
+          <option value="it">it - Italian</option>
+          <option value="pt">pt - Portuguese</option>
+          <option value="nl">nl - Dutch</option>
+          <option value="se">se - Swedish</option>
+          <option value="dk">dk - Danish</option>
+          <option value="no">no - Norwegian</option>
+          <option value="fi">fi - Finnish</option>
+          <option value="ru">ru - Russian</option>
+          <option value="pl">pl - Polish</option>
+          <option value="jp">jp - Japanese</option>
+          <option value="kr">kr - Korean</option>
+          <option value="br">br - Brazilian</option>
+          <option value="ch">ch - Swiss</option>
+          <option value="be">be - Belgian</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_TIMEZONE</span></label>
+        <select name="AUTO_SETUP_TIMEZONE" id="timezoneSelect"></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- S7: System - Security -->
+  <div class="section" id="sec-security" data-nav="Security">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>System - Security</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_GLOBAL_PASSWORD</span> - Global software password</label>
+        <div class="password-field">
+          <input type="password" name="AUTO_SETUP_GLOBAL_PASSWORD" id="globalPassword" value="">
+          <button class="btn-sm" onclick="togglePasswordVis(this)" type="button">Show</button>
+          <button class="btn-sm" onclick="regeneratePassword('globalPassword')" type="button">Regenerate</button>
+          <button class="btn-sm" onclick="copyToClipboard(document.getElementById('globalPassword').value)" type="button">Copy</button>
+        </div>
+        <div class="help-text">Applied to root login, dietpi user, and installed software. Defaults to a cryptographically random string.</div>
+      </div>
+      <div class="field">
+        <label><span class="key">SOFTWARE_DISABLE_SSH_PASSWORD_LOGINS</span> - Restrict SSH password logins</label>
+        <select name="SOFTWARE_DISABLE_SSH_PASSWORD_LOGINS">
+          <option value="0" selected>Allow all (0)</option>
+          <option value="root">Disable root password login (root)</option>
+          <option value="1">Disable all password logins (1)</option>
+        </select>
+        <div class="help-text">Use "1" to require SSH key-based authentication only.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S8: System - Performance -->
+  <div class="section" id="sec-performance" data-nav="Performance">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>System - Performance</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">CONFIG_CPU_GOVERNOR</span></label>
+        <select name="CONFIG_CPU_GOVERNOR">
+          <option value="schedutil" selected>schedutil</option>
+          <option value="ondemand">ondemand</option>
+          <option value="interactive">interactive</option>
+          <option value="conservative">conservative</option>
+          <option value="powersave">powersave</option>
+          <option value="performance">performance</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_CPU_ONDEMAND_SAMPLE_RATE</span></label>
+          <input type="number" name="CONFIG_CPU_ONDEMAND_SAMPLE_RATE" value="25000" min="10000">
+          <div class="help-text">Microseconds, min 10000</div>
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_CPU_ONDEMAND_SAMPLE_DOWNFACTOR</span></label>
+          <input type="number" name="CONFIG_CPU_ONDEMAND_SAMPLE_DOWNFACTOR" value="40" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_CPU_USAGE_THROTTLE_UP</span> - CPU usage % threshold to scale up</label>
+        <input type="number" name="CONFIG_CPU_USAGE_THROTTLE_UP" value="50" min="1" max="100">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_CPU_MAX_FREQ</span> - Max CPU frequency (leave empty for default)</label>
+          <input type="text" name="CONFIG_CPU_MAX_FREQ" value="" placeholder="e.g. 1800">
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_CPU_MIN_FREQ</span> - Min CPU frequency</label>
+          <input type="text" name="CONFIG_CPU_MIN_FREQ" value="" placeholder="e.g. 600">
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_CPU_DISABLE_TURBO</span> - Disable CPU turbo/boost</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="CONFIG_CPU_DISABLE_TURBO" value="0" checked><span>Turbo Enabled</span></label>
+          <label><input type="radio" name="CONFIG_CPU_DISABLE_TURBO" value="1"><span>Turbo Disabled</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S9: System - Misc -->
+  <div class="section" id="sec-misc" data-nav="System - Misc">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>System - Misc</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_SWAPFILE_SIZE</span> - Swap size (MiB)</label>
+          <input type="number" name="AUTO_SETUP_SWAPFILE_SIZE" value="1" min="0">
+          <div class="help-text">0 = disabled, 1 = auto</div>
+        </div>
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_SWAPFILE_LOCATION</span></label>
+          <input type="text" name="AUTO_SETUP_SWAPFILE_LOCATION" value="/var/swap" placeholder="/var/swap or zram">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">AUTO_SETUP_HEADLESS</span> - Headless mode (no display)</label>
+          <div class="toggle-group">
+            <label><input type="radio" name="AUTO_SETUP_HEADLESS" value="1" checked><span>Headless</span></label>
+            <label><input type="radio" name="AUTO_SETUP_HEADLESS" value="0"><span>Display</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_SERIAL_CONSOLE_ENABLE</span> - Serial console</label>
+          <div class="toggle-group">
+            <label><input type="radio" name="CONFIG_SERIAL_CONSOLE_ENABLE" value="1"><span>Enabled</span></label>
+            <label><input type="radio" name="CONFIG_SERIAL_CONSOLE_ENABLE" value="0" checked><span>Disabled</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_UNMASK_LOGIND</span> - Unmask systemd-logind</label>
+        <div class="toggle-group">
+          <label><input type="radio" name="AUTO_UNMASK_LOGIND" value="1"><span>Yes</span></label>
+          <label><input type="radio" name="AUTO_UNMASK_LOGIND" value="0" checked><span>No</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_SOUNDCARD</span> - Sound card selection</label>
+        <input type="text" name="CONFIG_SOUNDCARD" value="default" placeholder="default">
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_LCDPANEL</span> - LCD panel</label>
+        <input type="text" name="CONFIG_LCDPANEL" value="none" placeholder="none">
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_GPU_DRIVER</span> - GPU driver</label>
+        <select name="CONFIG_GPU_DRIVER">
+          <option value="none" selected>none</option>
+          <option value="intel">intel</option>
+          <option value="nvidia">nvidia</option>
+          <option value="amd">amd</option>
+          <option value="custom">custom</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- S10: Software - Server Selection -->
+  <div class="section" id="sec-software-servers" data-nav="Server Selection">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Software - Server Selection</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_SSH_SERVER_INDEX</span></label>
+        <select name="AUTO_SETUP_SSH_SERVER_INDEX">
+          <option value="-1" selected>Dropbear (-1)</option>
+          <option value="-2">OpenSSH (-2)</option>
+          <option value="0">None (0)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_LOGGING_INDEX</span> - Logging mode</label>
+        <select name="AUTO_SETUP_LOGGING_INDEX">
+          <option value="-1" selected>DietPi-RAMlog - Hourly clear (-1)</option>
+          <option value="-2">DietPi-RAMlog - Hourly save + clear (-2)</option>
+          <option value="-3">Rsyslog + logrotate (-3)</option>
+          <option value="0">None (0)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_RAMLOG_MAXSIZE</span> - RAMlog max size (MiB)</label>
+        <input type="number" name="AUTO_SETUP_RAMLOG_MAXSIZE" value="50" min="1">
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_WEB_SERVER_INDEX</span> - Web server preference</label>
+        <select name="AUTO_SETUP_WEB_SERVER_INDEX">
+          <option value="0">Apache (0)</option>
+          <option value="-1" selected>Nginx (-1)</option>
+          <option value="-2">Lighttpd (-2)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_DESKTOP_INDEX</span> - Desktop preference</label>
+        <select name="AUTO_SETUP_DESKTOP_INDEX">
+          <option value="0" selected>LXDE (0)</option>
+          <option value="-1">Xfce (-1)</option>
+          <option value="-2">MATE (-2)</option>
+          <option value="-3">LXQt (-3)</option>
+          <option value="-4">GNUstep (-4)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_BROWSER_INDEX</span> - Browser preference</label>
+        <select name="AUTO_SETUP_BROWSER_INDEX">
+          <option value="0" selected>Chromium (0)</option>
+          <option value="-1">Firefox (-1)</option>
+          <option value="-2">None (-2)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- S11: Software - Install by ID -->
+  <div class="section" id="sec-software-install" data-nav="Software Install">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Software - Install by ID</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="software-search">
+        <input type="text" id="softwareSearch" placeholder="Search software by name, ID, or description..." oninput="filterSoftware()">
+      </div>
+      <div class="selected-sw" id="selectedSwSummary"></div>
+      <div id="softwareCatalog"></div>
+    </div>
+  </div>
+
+  <!-- S12: Software - APT Packages -->
+  <div class="section" id="sec-apt" data-nav="APT Packages">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Software - APT Packages</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_APT_INSTALLS</span> - Additional APT packages to install</label>
+        <textarea name="AUTO_SETUP_APT_INSTALLS" placeholder="e.g. vim htop curl git"></textarea>
+        <div class="help-text">Space-separated list of Debian package names</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S13: Autostart -->
+  <div class="section" id="sec-autostart" data-nav="Autostart">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Autostart</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_AUTOSTART_TARGET_INDEX</span></label>
+        <select name="AUTO_SETUP_AUTOSTART_TARGET_INDEX">
+          <option value="0" selected>0 - Console login</option>
+          <option value="1">1 - Kodi</option>
+          <option value="2">2 - Desktop (auto-login)</option>
+          <option value="3">3 - RetroPie</option>
+          <option value="4">4 - OpenTyrian</option>
+          <option value="5">5 - DietPi-CloudShell</option>
+          <option value="6">6 - Amiberry fast boot</option>
+          <option value="7">7 - DietPi-Dashboard</option>
+          <option value="8">8 - LXQt Desktop</option>
+          <option value="9">9 - GNUstep Desktop</option>
+          <option value="10">10 - Chromium kiosk</option>
+          <option value="11">11 - Custom script (/var/lib/dietpi/dietpi-autostart/custom.sh)</option>
+          <option value="12">12 - Amiberry standard boot</option>
+          <option value="13">13 - MATE Desktop</option>
+          <option value="14">14 - Desktop (manual login)</option>
+          <option value="15">15 - Xfce Desktop</option>
+          <option value="16">16 - Tailscale</option>
+          <option value="17">17 - Custom (no login)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_AUTOSTART_LOGIN_USER</span> - Auto-login user</label>
+        <input type="text" name="AUTO_SETUP_AUTOSTART_LOGIN_USER" value="root">
+      </div>
+    </div>
+  </div>
+
+  <!-- S14: Software-Specific Settings -->
+  <div class="section" id="sec-software-settings" data-nav="Software Settings">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Software-Specific Settings</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="help-text" style="margin-bottom:12px">Settings shown here are based on your software selections. Select software in the "Software Install" section above to see relevant options.</div>
+
+      <!-- WireGuard (ID 172) -->
+      <div class="conditional" data-sw-ids="172" id="sw-wireguard">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">WireGuard</h3>
+        <div class="field">
+          <label><span class="key">SOFTWARE_WIREGUARD_MODE</span></label>
+          <select name="SOFTWARE_WIREGUARD_MODE">
+            <option value="server" selected>Server</option>
+            <option value="client">Client</option>
+          </select>
+        </div>
+        <div class="field">
+          <label><span class="key">SOFTWARE_WIREGUARD_PORT</span></label>
+          <input type="number" name="SOFTWARE_WIREGUARD_PORT" value="51820">
+        </div>
+      </div>
+
+      <!-- VNC Server (ID 28) -->
+      <div class="conditional" data-sw-ids="28" id="sw-vnc">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">VNC Server</h3>
+        <div class="field-row">
+          <div class="field"><label><span class="key">SOFTWARE_VNCSERVER_WIDTH</span></label><input type="number" name="SOFTWARE_VNCSERVER_WIDTH" value="1280"></div>
+          <div class="field"><label><span class="key">SOFTWARE_VNCSERVER_HEIGHT</span></label><input type="number" name="SOFTWARE_VNCSERVER_HEIGHT" value="720"></div>
+          <div class="field"><label><span class="key">SOFTWARE_VNCSERVER_DEPTH</span></label><input type="number" name="SOFTWARE_VNCSERVER_DEPTH" value="32"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label><span class="key">SOFTWARE_VNCSERVER_DISPLAY_INDEX</span></label><input type="number" name="SOFTWARE_VNCSERVER_DISPLAY_INDEX" value="1"></div>
+          <div class="field">
+            <label><span class="key">SOFTWARE_VNCSERVER_SHARE_DESKTOP</span></label>
+            <div class="toggle-group">
+              <label><input type="radio" name="SOFTWARE_VNCSERVER_SHARE_DESKTOP" value="1"><span>Yes</span></label>
+              <label><input type="radio" name="SOFTWARE_VNCSERVER_SHARE_DESKTOP" value="0" checked><span>No</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nextcloud (ID 114) -->
+      <div class="conditional" data-sw-ids="114" id="sw-nextcloud">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Nextcloud</h3>
+        <div class="field"><label><span class="key">SOFTWARE_NEXTCLOUD_USERNAME</span></label><input type="text" name="SOFTWARE_NEXTCLOUD_USERNAME" value="admin"></div>
+        <div class="field"><label><span class="key">SOFTWARE_NEXTCLOUD_DATADIR</span></label><input type="text" name="SOFTWARE_NEXTCLOUD_DATADIR" value="/mnt/dietpi_userdata/nextcloud_data"></div>
+      </div>
+
+      <!-- Synapse (ID 125) -->
+      <div class="conditional" data-sw-ids="125" id="sw-synapse">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Synapse (Matrix)</h3>
+        <div class="field"><label><span class="key">SOFTWARE_SYNAPSE_USERNAME</span></label><input type="text" name="SOFTWARE_SYNAPSE_USERNAME" value="admin"></div>
+      </div>
+
+      <!-- WiFi Hotspot (ID 60) -->
+      <div class="conditional" data-sw-ids="60" id="sw-hotspot">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">WiFi Hotspot</h3>
+        <div class="field"><label><span class="key">SOFTWARE_WIFI_HOTSPOT_SSID</span></label><input type="text" name="SOFTWARE_WIFI_HOTSPOT_SSID" value="DietPi-HotSpot"></div>
+        <div class="field">
+          <label><span class="key">SOFTWARE_WIFI_HOTSPOT_KEY</span></label>
+          <div class="password-field">
+            <input type="password" name="SOFTWARE_WIFI_HOTSPOT_KEY" id="hotspotKey" value="">
+            <button class="btn-sm" onclick="togglePasswordVis(this)" type="button">Show</button>
+            <button class="btn-sm" onclick="regeneratePassword('hotspotKey')" type="button">Regenerate</button>
+          </div>
+        </div>
+        <div class="field"><label><span class="key">SOFTWARE_WIFI_HOTSPOT_CHANNEL</span></label><input type="number" name="SOFTWARE_WIFI_HOTSPOT_CHANNEL" value="1" min="1" max="165"></div>
+      </div>
+
+      <!-- Chromium (ID 113) -->
+      <div class="conditional" data-sw-ids="113" id="sw-chromium">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Chromium</h3>
+        <div class="field-row">
+          <div class="field"><label><span class="key">SOFTWARE_CHROMIUM_RES_X</span></label><input type="number" name="SOFTWARE_CHROMIUM_RES_X" value="1920"></div>
+          <div class="field"><label><span class="key">SOFTWARE_CHROMIUM_RES_Y</span></label><input type="number" name="SOFTWARE_CHROMIUM_RES_Y" value="1080"></div>
+        </div>
+        <div class="field"><label><span class="key">SOFTWARE_CHROMIUM_AUTOSTART_URL</span></label><input type="text" name="SOFTWARE_CHROMIUM_AUTOSTART_URL" value="" placeholder="https://dietpi.com"></div>
+      </div>
+
+      <!-- Home Assistant (ID 157) -->
+      <div class="conditional" data-sw-ids="157" id="sw-homeassistant">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Home Assistant</h3>
+        <div class="field"><label><span class="key">SOFTWARE_HOMEASSISTANT_APT_DEPS</span></label><textarea name="SOFTWARE_HOMEASSISTANT_APT_DEPS" placeholder="Additional APT dependencies"></textarea></div>
+        <div class="field"><label><span class="key">SOFTWARE_HOMEASSISTANT_PIP_DEPS</span></label><textarea name="SOFTWARE_HOMEASSISTANT_PIP_DEPS" placeholder="Additional pip dependencies"></textarea></div>
+      </div>
+
+      <!-- K3s (ID 168) -->
+      <div class="conditional" data-sw-ids="168" id="sw-k3s">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">K3s (Kubernetes)</h3>
+        <div class="field"><label><span class="key">SOFTWARE_K3S_EXEC</span></label><input type="text" name="SOFTWARE_K3S_EXEC" value="" placeholder="server --disable=traefik"></div>
+      </div>
+
+      <!-- DietPi Dashboard (ID 200) -->
+      <div class="conditional" data-sw-ids="200" id="sw-dashboard">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">DietPi Dashboard</h3>
+        <div class="field"><label><span class="key">SOFTWARE_DIETPI_DASHBOARD_VERSION</span></label><input type="text" name="SOFTWARE_DIETPI_DASHBOARD_VERSION" value="" placeholder="Latest"></div>
+        <div class="field"><label><span class="key">SOFTWARE_DIETPI_DASHBOARD_BACKEND</span></label><input type="text" name="SOFTWARE_DIETPI_DASHBOARD_BACKEND" value="0" placeholder="0 = default"></div>
+      </div>
+
+      <!-- UrBackup (ID 111) -->
+      <div class="conditional" data-sw-ids="111" id="sw-urbackup">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">UrBackup</h3>
+        <div class="field"><label><span class="key">SOFTWARE_URBACKUP_BACKUPPATH</span></label><input type="text" name="SOFTWARE_URBACKUP_BACKUPPATH" value="/mnt/dietpi_userdata/urbackup"></div>
+      </div>
+
+      <!-- Roon Server (ID 121) -->
+      <div class="conditional" data-sw-ids="121" id="sw-roon">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Roon Server</h3>
+        <div class="field">
+          <label><span class="key">SOFTWARE_ROONSERVER_EARLYACCESS</span></label>
+          <div class="toggle-group">
+            <label><input type="radio" name="SOFTWARE_ROONSERVER_EARLYACCESS" value="1"><span>Early Access</span></label>
+            <label><input type="radio" name="SOFTWARE_ROONSERVER_EARLYACCESS" value="0" checked><span>Stable</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Xorg (ID 6) -->
+      <div class="conditional" data-sw-ids="6" id="sw-xorg">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Xorg</h3>
+        <div class="field"><label><span class="key">SOFTWARE_XORG_DPI</span></label><input type="number" name="SOFTWARE_XORG_DPI" value="96"></div>
+      </div>
+
+      <!-- Public Domain Name -->
+      <div class="conditional" data-sw-ids="92,114,125,158" id="sw-domain">
+        <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--accent)">Domain</h3>
+        <div class="field"><label><span class="key">SOFTWARE_PUBLIC_DOMAIN_NAME</span></label><input type="text" name="SOFTWARE_PUBLIC_DOMAIN_NAME" value="" placeholder="example.com"></div>
+      </div>
+
+      <div id="noSwSettings" class="help-text">No software-specific settings to show. Select software packages above.</div>
+    </div>
+  </div>
+
+  <!-- S15: Connectivity Checks -->
+  <div class="section" id="sec-connectivity" data-nav="Connectivity">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Connectivity Checks</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_G_CHECK_URL_TIMEOUT</span> - URL check timeout (s)</label>
+          <input type="number" name="CONFIG_G_CHECK_URL_TIMEOUT" value="10" min="1">
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_G_CHECK_URL_ATTEMPTS</span> - URL check attempts</label>
+          <input type="number" name="CONFIG_G_CHECK_URL_ATTEMPTS" value="5" min="1">
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_CHECK_CONNECTION_IP</span> - IPv4 connectivity check address</label>
+        <input type="text" name="CONFIG_CHECK_CONNECTION_IP" value="9.9.9.9" data-validate="ip">
+        <div class="validation-msg">Enter a valid IPv4 address</div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_CHECK_CONNECTION_IPV6</span> - IPv6 connectivity check address</label>
+        <input type="text" name="CONFIG_CHECK_CONNECTION_IPV6" value="2620:fe::fe">
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_CHECK_DNS_DOMAIN</span> - DNS check domain</label>
+        <input type="text" name="CONFIG_CHECK_DNS_DOMAIN" value="dns9.quad9.net">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="key">CONFIG_CHECK_DIETPI_UPDATES</span> - Check for DietPi updates</label>
+          <div class="toggle-group">
+            <label><input type="radio" name="CONFIG_CHECK_DIETPI_UPDATES" value="1" checked><span>Yes</span></label>
+            <label><input type="radio" name="CONFIG_CHECK_DIETPI_UPDATES" value="0"><span>No</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label><span class="key">CONFIG_CHECK_APT_UPDATES</span> - APT update check</label>
+          <select name="CONFIG_CHECK_APT_UPDATES">
+            <option value="1" selected>Check (1)</option>
+            <option value="0">Disabled (0)</option>
+            <option value="2">Check + auto-install (2)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_NTP_MODE</span> - NTP time sync mode</label>
+        <select name="CONFIG_NTP_MODE">
+          <option value="1">1 - Boot only (one-shot)</option>
+          <option value="2" selected>2 - Boot + daily (one-shot)</option>
+          <option value="3">3 - Boot + hourly (one-shot)</option>
+          <option value="4">4 - Daemon + drift (systemd-timesyncd)</option>
+          <option value="0">0 - Disabled</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- S16: APT Mirrors -->
+  <div class="section" id="sec-mirrors" data-nav="APT Mirrors">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>APT Mirrors</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">CONFIG_APT_RASPBIAN_MIRROR</span></label>
+        <input type="text" name="CONFIG_APT_RASPBIAN_MIRROR" value="http://raspbian.raspberrypi.com/raspbian/">
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_APT_DEBIAN_MIRROR</span></label>
+        <input type="text" name="CONFIG_APT_DEBIAN_MIRROR" value="https://deb.debian.org/debian/">
+      </div>
+      <div class="field">
+        <label><span class="key">CONFIG_NTP_MIRROR</span></label>
+        <input type="text" name="CONFIG_NTP_MIRROR" value="debian.pool.ntp.org">
+      </div>
+    </div>
+  </div>
+
+  <!-- S17: Custom Script & Backup -->
+  <div class="section" id="sec-custom" data-nav="Custom Script">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Custom Script &amp; Backup</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_CUSTOM_SCRIPT_EXEC</span> - Custom script to run after install</label>
+        <input type="text" name="AUTO_SETUP_CUSTOM_SCRIPT_EXEC" value="0" placeholder="0 or URL to script">
+        <div class="help-text">0 = disabled, or provide a URL to a shell script</div>
+      </div>
+      <div class="field">
+        <label><span class="key">AUTO_SETUP_BACKUP_RESTORE</span> - Backup/Restore on first boot</label>
+        <select name="AUTO_SETUP_BACKUP_RESTORE">
+          <option value="0" selected>Disabled (0)</option>
+          <option value="1">Restore from backup (1)</option>
+          <option value="2">Backup after install (2)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- S18: Developer Options -->
+  <div class="section" id="sec-dev" data-nav="Developer">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h2>Developer Options</h2>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label><span class="key">DEV_GITBRANCH</span> - DietPi Git branch</label>
+        <input type="text" name="DEV_GITBRANCH" value="master">
+        <div class="help-text">Only change if you know what you're doing.</div>
+      </div>
+      <div class="field">
+        <label><span class="key">DEV_GITOWNER</span> - DietPi Git owner</label>
+        <input type="text" name="DEV_GITOWNER" value="MichaIng">
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Panel -->
+  <div class="preview-panel" id="previewPanel">
+    <div class="preview-header">
+      <h3>File Preview</h3>
+      <div class="preview-tabs">
+        <button class="active" onclick="switchPreviewTab('dietpi', this)">dietpi.txt</button>
+        <button onclick="switchPreviewTab('wifi', this)">dietpi-wifi.txt</button>
+      </div>
+      <button class="btn-sm" style="margin-left:12px" onclick="copyPreview()">Copy</button>
+    </div>
+    <div class="preview-content">
+      <pre id="previewText">Click "Preview Config" to generate file contents.</pre>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ─── Timezone Data ───
+const TIMEZONES = {
+  'Africa': ['Africa/Cairo','Africa/Casablanca','Africa/Johannesburg','Africa/Lagos','Africa/Nairobi'],
+  'America': ['America/Anchorage','America/Argentina/Buenos_Aires','America/Bogota','America/Chicago','America/Denver','America/Halifax','America/Los_Angeles','America/Mexico_City','America/New_York','America/Phoenix','America/Santiago','America/Sao_Paulo','America/St_Johns','America/Toronto','America/Vancouver'],
+  'Asia': ['Asia/Bangkok','Asia/Chongqing','Asia/Colombo','Asia/Dhaka','Asia/Dubai','Asia/Hong_Kong','Asia/Istanbul','Asia/Jakarta','Asia/Jerusalem','Asia/Karachi','Asia/Kolkata','Asia/Kuala_Lumpur','Asia/Manila','Asia/Riyadh','Asia/Seoul','Asia/Shanghai','Asia/Singapore','Asia/Taipei','Asia/Tehran','Asia/Tokyo'],
+  'Atlantic': ['Atlantic/Azores','Atlantic/Reykjavik'],
+  'Australia': ['Australia/Adelaide','Australia/Brisbane','Australia/Darwin','Australia/Hobart','Australia/Melbourne','Australia/Perth','Australia/Sydney'],
+  'Europe': ['Europe/Amsterdam','Europe/Athens','Europe/Belgrade','Europe/Berlin','Europe/Brussels','Europe/Bucharest','Europe/Budapest','Europe/Copenhagen','Europe/Dublin','Europe/Helsinki','Europe/Kiev','Europe/Lisbon','Europe/London','Europe/Madrid','Europe/Moscow','Europe/Oslo','Europe/Paris','Europe/Prague','Europe/Rome','Europe/Stockholm','Europe/Vienna','Europe/Warsaw','Europe/Zurich'],
+  'Pacific': ['Pacific/Auckland','Pacific/Fiji','Pacific/Guam','Pacific/Honolulu']
+};
+
+// ─── Software Database ───
+const SOFTWARE_DB = [
+  // Desktops
+  {id:23, name:'LXDE', cat:'Desktops', desc:'Lightweight desktop'},
+  {id:24, name:'MATE', cat:'Desktops', desc:'GNOME 2 fork desktop'},
+  {id:25, name:'Xfce', cat:'Desktops', desc:'Lightweight modular desktop'},
+  {id:26, name:'GNUstep', cat:'Desktops', desc:'Objective-C desktop'},
+  {id:173, name:'LXQt', cat:'Desktops', desc:'Qt-based lightweight desktop'},
+  // Remote Desktop
+  {id:28, name:'VNC Server (TigerVNC)', cat:'Remote Desktop', desc:'Virtual network computing'},
+  {id:29, name:'XRDP', cat:'Remote Desktop', desc:'Remote desktop protocol server'},
+  {id:30, name:'NoMachine', cat:'Remote Desktop', desc:'Fast remote desktop'},
+  // Media
+  {id:31, name:'Kodi', cat:'Media', desc:'Media center'},
+  {id:32, name:'ympd', cat:'Media', desc:'MPD web client'},
+  {id:33, name:'myMPD', cat:'Media', desc:'Modern MPD web client'},
+  {id:36, name:'Emby Server', cat:'Media', desc:'Media server'},
+  {id:37, name:'Plex Media Server', cat:'Media', desc:'Media server'},
+  {id:38, name:'murmur (Mumble Server)', cat:'Media', desc:'Voice chat server'},
+  {id:39, name:'Transmission', cat:'Media', desc:'BitTorrent client'},
+  {id:41, name:'Shairport Sync', cat:'Media', desc:'AirPlay audio receiver'},
+  {id:43, name:'Squeezelite', cat:'Media', desc:'Squeezebox audio player'},
+  {id:121, name:'Roon Server', cat:'Media', desc:'Music management server'},
+  {id:122, name:'Roon Bridge', cat:'Media', desc:'Roon audio endpoint'},
+  {id:123, name:'Roon Extension Manager', cat:'Media', desc:'Roon extensions'},
+  {id:124, name:'NAA Daemon', cat:'Media', desc:'Network Audio Adapter'},
+  {id:128, name:'Jellyfin', cat:'Media', desc:'Free media system'},
+  {id:132, name:'Koel', cat:'Media', desc:'Personal music streaming'},
+  {id:133, name:'GMediaRender', cat:'Media', desc:'DLNA/UPnP renderer'},
+  {id:134, name:'Ubooquity', cat:'Media', desc:'Comic/ebook server'},
+  {id:135, name:'Komga', cat:'Media', desc:'Comic/manga server'},
+  {id:136, name:'Raspotify', cat:'Media', desc:'Spotify Connect client'},
+  {id:152, name:'Kavita', cat:'Media', desc:'Reading server'},
+  {id:154, name:'Navidrome', cat:'Media', desc:'Music server (Subsonic)'},
+  {id:155, name:'IceCast', cat:'Media', desc:'Streaming media server'},
+  {id:159, name:'PlexAmp', cat:'Media', desc:'Plex music player'},
+  {id:163, name:'Spotifyd', cat:'Media', desc:'Spotify daemon'},
+  {id:188, name:'Lidarr', cat:'Media', desc:'Music collection manager'},
+  {id:189, name:'Readarr', cat:'Media', desc:'Book collection manager'},
+  {id:190, name:'LazyLibrarian', cat:'Media', desc:'Book downloader/manager'},
+  {id:204, name:'Audiobookshelf', cat:'Media', desc:'Self-hosted audiobook server'},
+  // BitTorrent / Download
+  {id:44, name:'qBittorrent', cat:'BitTorrent / Download', desc:'BitTorrent client'},
+  {id:45, name:'rTorrent', cat:'BitTorrent / Download', desc:'Console BitTorrent client'},
+  {id:46, name:'Aria2', cat:'BitTorrent / Download', desc:'Download utility'},
+  {id:47, name:'SABnzbd', cat:'BitTorrent / Download', desc:'Usenet downloader'},
+  {id:48, name:'Deluge', cat:'BitTorrent / Download', desc:'BitTorrent client'},
+  {id:49, name:'NZBGet', cat:'BitTorrent / Download', desc:'Usenet downloader'},
+  {id:142, name:'Sonarr', cat:'BitTorrent / Download', desc:'TV series manager'},
+  {id:143, name:'Radarr', cat:'BitTorrent / Download', desc:'Movie manager'},
+  {id:144, name:'Bazarr', cat:'BitTorrent / Download', desc:'Subtitle manager'},
+  {id:145, name:'Jackett', cat:'BitTorrent / Download', desc:'Torrent indexer proxy'},
+  {id:148, name:'Prowlarr', cat:'BitTorrent / Download', desc:'Indexer manager'},
+  // Cloud / Backup
+  {id:80, name:'Syncthing', cat:'Cloud / Backup', desc:'Decentralized file sync'},
+  {id:96, name:'Nextcloud Talk', cat:'Cloud / Backup', desc:'Video calls for Nextcloud'},
+  {id:111, name:'UrBackup Server', cat:'Cloud / Backup', desc:'Client/Server backup'},
+  {id:114, name:'Nextcloud', cat:'Cloud / Backup', desc:'Self-hosted cloud'},
+  {id:115, name:'ownCloud', cat:'Cloud / Backup', desc:'File sharing platform'},
+  {id:170, name:'Vaultwarden', cat:'Cloud / Backup', desc:'Password manager'},
+  {id:171, name:'FuguHub', cat:'Cloud / Backup', desc:'Cloud storage gateway'},
+  {id:198, name:'Forgejo', cat:'Cloud / Backup', desc:'Self-hosted Git'},
+  // Social / Communication
+  {id:125, name:'Synapse', cat:'Social', desc:'Matrix homeserver'},
+  {id:53, name:'Pi-hole', cat:'DNS / Network', desc:'Network-wide ad blocker'},
+  // System / Utility
+  {id:0, name:'OpenSSH Client', cat:'System', desc:'SSH client'},
+  {id:1, name:'Samba Client', cat:'System', desc:'Windows file sharing client'},
+  {id:5, name:'Alsa', cat:'System', desc:'ALSA sound system'},
+  {id:6, name:'Xorg', cat:'System', desc:'X Window System'},
+  {id:7, name:'FFmpeg', cat:'System', desc:'Multimedia framework'},
+  {id:8, name:'Node.js', cat:'System', desc:'JavaScript runtime'},
+  {id:9, name:'Docker', cat:'System', desc:'Container platform'},
+  {id:16, name:'Build-Essential', cat:'System', desc:'Compiler toolchain'},
+  {id:17, name:'Git', cat:'System', desc:'Version control'},
+  {id:34, name:'DietPi-RAMlog', cat:'System', desc:'RAM-based logging'},
+  {id:69, name:'RPi.GPIO', cat:'System', desc:'Raspberry Pi GPIO library'},
+  {id:72, name:'WiringPi', cat:'System', desc:'GPIO access library'},
+  {id:130, name:'Python 3/pip', cat:'System', desc:'Python 3 + pip'},
+  {id:134, name:'Ubooquity', cat:'System', desc:'Comic/ebook server'},
+  {id:162, name:'Docker Compose', cat:'System', desc:'Multi-container Docker'},
+  {id:192, name:'K3s', cat:'System', desc:'Lightweight Kubernetes'},
+  // Remote Access
+  {id:57, name:'Tailscale', cat:'Remote Access', desc:'WireGuard-based mesh VPN'},
+  {id:169, name:'ZeroTier', cat:'Remote Access', desc:'Virtual networking'},
+  {id:172, name:'WireGuard', cat:'Remote Access', desc:'Fast VPN tunnel'},
+  // Web
+  {id:75, name:'LASP (Webserver stack)', cat:'Web', desc:'Lighttpd + SQLite + PHP'},
+  {id:76, name:'LAMP (Webserver stack)', cat:'Web', desc:'Apache + MariaDB + PHP'},
+  {id:77, name:'LEMP (Webserver stack)', cat:'Web', desc:'Nginx + MariaDB + PHP'},
+  {id:78, name:'phpMyAdmin', cat:'Web', desc:'MySQL web admin'},
+  {id:79, name:'Certbot', cat:'Web', desc:'Let\'s Encrypt certificates'},
+  {id:83, name:'Apache', cat:'Web', desc:'HTTP server'},
+  {id:84, name:'MariaDB', cat:'Web', desc:'MySQL-compatible database'},
+  {id:85, name:'Nginx', cat:'Web', desc:'HTTP/reverse proxy server'},
+  {id:86, name:'PHP', cat:'Web', desc:'PHP scripting language'},
+  {id:87, name:'SQLite', cat:'Web', desc:'Lightweight SQL database'},
+  {id:88, name:'Redis', cat:'Web', desc:'In-memory data store'},
+  {id:89, name:'Lighttpd', cat:'Web', desc:'Lightweight HTTP server'},
+  {id:90, name:'PHP-FPM', cat:'Web', desc:'PHP FastCGI Process Manager'},
+  {id:91, name:'Tomcat', cat:'Web', desc:'Java servlet container'},
+  {id:92, name:'Let\'s Encrypt', cat:'Web', desc:'Free TLS certificates'},
+  // Monitoring
+  {id:61, name:'Grafana', cat:'Monitoring', desc:'Analytics dashboard'},
+  {id:62, name:'InfluxDB', cat:'Monitoring', desc:'Time series database'},
+  {id:99, name:'Prometheus', cat:'Monitoring', desc:'Monitoring system'},
+  {id:100, name:'Prometheus Node Exporter', cat:'Monitoring', desc:'Hardware metrics exporter'},
+  {id:200, name:'DietPi-Dashboard', cat:'Monitoring', desc:'DietPi system dashboard'},
+  // File Servers
+  {id:1, name:'Samba Client', cat:'File Servers', desc:'SMB/CIFS client'},
+  {id:97, name:'Samba Server', cat:'File Servers', desc:'SMB/CIFS file server'},
+  {id:98, name:'vsftpd', cat:'File Servers', desc:'FTP server'},
+  {id:109, name:'ProFTPD', cat:'File Servers', desc:'FTP server'},
+  {id:110, name:'NFS Server', cat:'File Servers', desc:'Network File System server'},
+  // Home Automation
+  {id:157, name:'Home Assistant', cat:'Home Automation', desc:'Home automation platform'},
+  {id:158, name:'Domoticz', cat:'Home Automation', desc:'Home automation'},
+  {id:166, name:'Mosquitto', cat:'Home Automation', desc:'MQTT broker'},
+  {id:167, name:'Node-RED', cat:'Home Automation', desc:'Flow-based programming'},
+  // Security
+  {id:50, name:'OpenVPN', cat:'Security', desc:'VPN server/client'},
+  {id:51, name:'PiVPN', cat:'Security', desc:'VPN installer'},
+  {id:55, name:'Fail2Ban', cat:'Security', desc:'Intrusion prevention'},
+  // Camera
+  {id:59, name:'RPi Cam Web Interface', cat:'Camera', desc:'Raspberry Pi camera web UI'},
+  {id:137, name:'motionEye', cat:'Camera', desc:'Video surveillance'},
+  // WiFi
+  {id:60, name:'WiFi Hotspot', cat:'WiFi', desc:'Access point / hotspot'},
+  {id:56, name:'TOR Hotspot', cat:'WiFi', desc:'TOR access point'},
+  // Printing
+  {id:64, name:'CUPS', cat:'Printing', desc:'Print server'},
+  {id:65, name:'OctoPrint', cat:'Printing', desc:'3D printer web UI'},
+  // DNS / Network
+  {id:52, name:'Unbound', cat:'DNS / Network', desc:'Validating DNS resolver'},
+  {id:54, name:'AdGuard Home', cat:'DNS / Network', desc:'Network-wide ad blocker'},
+  {id:153, name:'dnscrypt-proxy', cat:'DNS / Network', desc:'DNS encryption proxy'},
+  // Gaming
+  {id:70, name:'Amiberry', cat:'Gaming', desc:'Amiga emulator'},
+  {id:71, name:'DXX-Rebirth', cat:'Gaming', desc:'Descent 1/2 engine'},
+  // Browsers
+  {id:113, name:'Chromium', cat:'Browsers', desc:'Open-source web browser'},
+  // Misc Software
+  {id:10, name:'cURL', cat:'Misc', desc:'Transfer data tool'},
+  {id:168, name:'K3s', cat:'Misc', desc:'Lightweight Kubernetes'},
+  {id:174, name:'Portainer', cat:'Misc', desc:'Container management UI'},
+  {id:175, name:'Homer', cat:'Misc', desc:'Static dashboard for services'},
+  {id:176, name:'Dashy', cat:'Misc', desc:'Dashboard app'},
+  {id:194, name:'Grafana Loki', cat:'Monitoring', desc:'Log aggregation system'},
+  {id:195, name:'Grafana Promtail', cat:'Monitoring', desc:'Log collector for Loki'},
+  {id:196, name:'Grafana Tempo', cat:'Monitoring', desc:'Distributed tracing backend'},
+  {id:197, name:'Grafana Alloy', cat:'Monitoring', desc:'OpenTelemetry collector'},
+];
+
+// Deduplicate by id (some appear in multiple categories, keep first)
+const seenIds = new Set();
+const SOFTWARE = SOFTWARE_DB.filter(s => {
+  if (seenIds.has(s.id)) return false;
+  seenIds.add(s.id);
+  return true;
+}).sort((a,b) => a.id - b.id);
+
+// Categories
+const SW_CATEGORIES = {};
+SOFTWARE.forEach(s => {
+  if (!SW_CATEGORIES[s.cat]) SW_CATEGORIES[s.cat] = [];
+  SW_CATEGORIES[s.cat].push(s);
+});
+
+// ─── State ───
+let selectedSoftware = new Set();
+let wifiEntryCount = 0;
+let currentPreviewTab = 'dietpi';
+
+// ─── Password Generation ───
+function generatePassword(len) {
+  len = len || 24;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const limit = Math.floor(0x100000000 / chars.length) * chars.length;
+  let result = '';
+  while (result.length < len) {
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < arr.length && result.length < len; i++) {
+      if (arr[i] < limit) result += chars[arr[i] % chars.length];
+    }
+  }
+  return result;
+}
+
+function regeneratePassword(inputId) {
+  const el = document.getElementById(inputId);
+  if (el) {
+    el.value = generatePassword();
+    el.type = 'text';
+    const btn = el.parentElement.querySelector('.btn-sm');
+    if (btn && btn.textContent === 'Show') btn.textContent = 'Hide';
+  }
+}
+
+function togglePasswordVis(btn) {
+  const input = btn.parentElement.querySelector('input');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+// ─── Clipboard & Toast ───
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── Section Toggle ───
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// ─── Sidebar Navigation ───
+function buildSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  const sections = document.querySelectorAll('.section[data-nav]');
+  sections.forEach(sec => {
+    const a = document.createElement('a');
+    a.href = '#' + sec.id;
+    a.textContent = sec.dataset.nav;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      sec.scrollIntoView({behavior: 'smooth', block: 'start'});
+      // Open section if closed
+      const body = sec.querySelector('.section-body');
+      const chevron = sec.querySelector('.chevron');
+      if (!body.classList.contains('open')) {
+        body.classList.add('open');
+        chevron.classList.add('open');
+      }
+      // Close mobile sidebar
+      document.querySelector('.sidebar').classList.remove('open');
+    });
+    nav.appendChild(a);
+  });
+}
+
+// ─── Timezone Dropdown ───
+function buildTimezoneDropdown() {
+  const sel = document.getElementById('timezoneSelect');
+  Object.entries(TIMEZONES).forEach(([group, zones]) => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = group;
+    zones.forEach(tz => {
+      const opt = document.createElement('option');
+      opt.value = tz;
+      opt.textContent = tz;
+      if (tz === 'Europe/London') opt.selected = true;
+      optgroup.appendChild(opt);
+    });
+    sel.appendChild(optgroup);
+  });
+}
+
+// ─── Software Catalog ───
+function buildSoftwareCatalog() {
+  const container = document.getElementById('softwareCatalog');
+  const catOrder = Object.keys(SW_CATEGORIES).sort();
+  catOrder.forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'software-category';
+    div.dataset.cat = cat;
+    div.innerHTML = '<h3>' + escapeHtml(cat) + '</h3><div class="software-grid"></div>';
+    const grid = div.querySelector('.software-grid');
+    SW_CATEGORIES[cat].sort((a,b) => a.id - b.id).forEach(sw => {
+      const item = document.createElement('label');
+      item.className = 'software-item';
+      item.dataset.swId = sw.id;
+      item.dataset.searchable = (sw.id + ' ' + sw.name + ' ' + sw.desc).toLowerCase();
+      item.innerHTML = '<input type="checkbox" value="' + sw.id + '" onchange="toggleSoftwareSelection(' + sw.id + ', this.checked)">'
+        + '<span class="sw-id">' + sw.id + '</span>'
+        + '<span><span class="sw-name">' + escapeHtml(sw.name) + '</span><br><span class="sw-desc">' + escapeHtml(sw.desc) + '</span></span>';
+      grid.appendChild(item);
+    });
+    container.appendChild(div);
+  });
+}
+
+function filterSoftware() {
+  const q = document.getElementById('softwareSearch').value.toLowerCase().trim();
+  document.querySelectorAll('.software-item').forEach(item => {
+    item.style.display = (!q || item.dataset.searchable.includes(q)) ? '' : 'none';
+  });
+  document.querySelectorAll('.software-category').forEach(cat => {
+    const visible = cat.querySelectorAll('.software-item[style=""], .software-item:not([style])');
+    cat.style.display = visible.length ? '' : 'none';
+  });
+}
+
+function toggleSoftwareSelection(id, checked) {
+  if (checked) selectedSoftware.add(id);
+  else selectedSoftware.delete(id);
+  updateSelectedSummary();
+  updateSoftwareSettings();
+}
+
+function updateSelectedSummary() {
+  const el = document.getElementById('selectedSwSummary');
+  if (selectedSoftware.size === 0) {
+    el.textContent = '';
+  } else {
+    const ids = Array.from(selectedSoftware).sort((a,b) => a - b);
+    el.textContent = 'Selected (' + ids.length + '): ' + ids.join(' ');
+  }
+}
+
+function updateSoftwareSettings() {
+  const conditionals = document.querySelectorAll('#sec-software-settings .conditional[data-sw-ids]');
+  let anyVisible = false;
+  conditionals.forEach(el => {
+    const ids = el.dataset.swIds.split(',').map(Number);
+    const show = ids.some(id => selectedSoftware.has(id));
+    el.classList.toggle('visible', show);
+    if (show) anyVisible = true;
+  });
+  document.getElementById('noSwSettings').style.display = anyVisible ? 'none' : '';
+}
+
+// ─── WiFi Entries ───
+function addWifiEntry() {
+  if (wifiEntryCount >= 5) { showToast('Maximum 5 WiFi networks'); return; }
+  const n = wifiEntryCount;
+  const container = document.getElementById('wifiEntries');
+  const div = document.createElement('div');
+  div.className = 'wifi-entry';
+  div.id = 'wifiEntry' + n;
+  div.innerHTML = '<h3>WiFi Network ' + n + ' <button class="btn-sm" onclick="removeWifiEntry(' + n + ')" type="button" style="float:right">Remove</button></h3>'
+    + '<div class="field"><label>SSID</label><input type="text" data-wifi="ssid" data-wifi-n="' + n + '" placeholder="Network name"></div>'
+    + '<div class="field"><label>Key / Password</label>'
+    + '<div class="password-field"><input type="password" data-wifi="key" data-wifi-n="' + n + '" placeholder="WiFi password" id="wifiKey' + n + '">'
+    + '<button class="btn-sm" onclick="togglePasswordVis(this)" type="button">Show</button>'
+    + '<button class="btn-sm" onclick="regeneratePassword(\'wifiKey' + n + '\')" type="button">Regenerate</button></div></div>'
+    + '<div class="field"><label>Key Management</label>'
+    + '<select data-wifi="keymgr" data-wifi-n="' + n + '" onchange="toggleEapFields(' + n + ', this.value)">'
+    + '<option value="WPA-PSK" selected>WPA-PSK</option>'
+    + '<option value="WPA-EAP">WPA-EAP (Enterprise)</option>'
+    + '<option value="NONE">NONE (Open)</option></select></div>'
+    + '<div class="eap-fields" id="eapFields' + n + '">'
+    + '<div class="field"><label>aWIFI_PROTO</label><input type="text" data-wifi="proto" data-wifi-n="' + n + '" value="RSN" placeholder="RSN"></div>'
+    + '<div class="field"><label>aWIFI_PAIRWISE</label><input type="text" data-wifi="pairwise" data-wifi-n="' + n + '" value="CCMP" placeholder="CCMP"></div>'
+    + '<div class="field"><label>aWIFI_AUTH_ALG</label><input type="text" data-wifi="auth_alg" data-wifi-n="' + n + '" value="OPEN" placeholder="OPEN"></div>'
+    + '<div class="field"><label>aWIFI_EAP</label><input type="text" data-wifi="eap" data-wifi-n="' + n + '" value="PEAP" placeholder="PEAP"></div>'
+    + '<div class="field"><label>aWIFI_IDENTITY</label><input type="text" data-wifi="identity" data-wifi-n="' + n + '" placeholder="username"></div>'
+    + '<div class="field"><label>aWIFI_PASSWORD</label>'
+    + '<div class="password-field"><input type="password" data-wifi="password" data-wifi-n="' + n + '" id="wifiEapPass' + n + '">'
+    + '<button class="btn-sm" onclick="togglePasswordVis(this)" type="button">Show</button></div></div>'
+    + '<div class="field"><label>aWIFI_PHASE1</label><input type="text" data-wifi="phase1" data-wifi-n="' + n + '" placeholder=""></div>'
+    + '<div class="field"><label>aWIFI_PHASE2</label><input type="text" data-wifi="phase2" data-wifi-n="' + n + '" value="" placeholder="auth=MSCHAPV2"></div>'
+    + '<div class="field"><label>aWIFI_CERT</label><input type="text" data-wifi="cert" data-wifi-n="' + n + '" placeholder="Path to CA cert"></div>'
+    + '</div>';
+  container.appendChild(div);
+  wifiEntryCount++;
+  if (wifiEntryCount >= 5) document.getElementById('btnAddWifi').disabled = true;
+}
+
+function removeWifiEntry(n) {
+  const el = document.getElementById('wifiEntry' + n);
+  if (el) el.remove();
+  if (wifiEntryCount >= 5) document.getElementById('btnAddWifi').disabled = false;
+}
+
+function toggleEapFields(n, val) {
+  const eap = document.getElementById('eapFields' + n);
+  if (eap) eap.classList.toggle('visible', val === 'WPA-EAP');
+}
+
+// ─── Validation ───
+function validateIp(val) {
+  if (!val) return true; // empty is ok
+  return /^(\d{1,3}\.){3}\d{1,3}$/.test(val) && val.split('.').every(o => parseInt(o) <= 255);
+}
+
+function validateHostname(val) {
+  return /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$/.test(val);
+}
+
+function runValidation() {
+  let valid = true;
+  document.querySelectorAll('[data-validate]').forEach(input => {
+    const type = input.dataset.validate;
+    const msg = input.parentElement.querySelector('.validation-msg');
+    let ok = true;
+    if (type === 'ip') ok = validateIp(input.value);
+    else if (type === 'hostname') ok = validateHostname(input.value);
+    if (ok) {
+      input.classList.remove('invalid');
+      if (msg) msg.classList.remove('show');
+    } else {
+      input.classList.add('invalid');
+      if (msg) msg.classList.add('show');
+      valid = false;
+    }
+  });
+  return valid;
+}
+
+// ─── Form Value Helpers ───
+function getVal(name) {
+  const el = document.querySelector('[name="' + name + '"]');
+  if (!el) return '';
+  if (el.type === 'radio') {
+    const checked = document.querySelector('[name="' + name + '"]:checked');
+    return checked ? checked.value : '';
+  }
+  return el.value;
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ─── Conditional Field Visibility ───
+function setupConditionalFields() {
+  // Static IP fields
+  document.querySelectorAll('[name="AUTO_SETUP_NET_USESTATIC"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('staticIpFields').classList.toggle('visible', getVal('AUTO_SETUP_NET_USESTATIC') === '1');
+    });
+  });
+
+  // WiFi download button
+  document.querySelectorAll('[name="AUTO_SETUP_NET_WIFI_ENABLED"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const en = getVal('AUTO_SETUP_NET_WIFI_ENABLED') === '1';
+      document.getElementById('btnDownloadWifi').classList.toggle('hidden', !en);
+    });
+  });
+}
+
+// ─── Generate dietpi.txt ───
+function generateDietpiTxt() {
+  const lines = [];
+  function line(s) { lines.push(s); }
+  function setting(key, comment) {
+    if (comment) line('# ' + comment);
+    line(key + '=' + getVal(key));
+  }
+  function settingVal(key, val, comment) {
+    if (comment) line('# ' + comment);
+    line(key + '=' + val);
+  }
+
+  line('# ──────────────────────────────────────────────────────');
+  line('# DietPi Automation Configuration');
+  line('# Generated by DietPi Automation Config Builder');
+  line('# ──────────────────────────────────────────────────────');
+  line('');
+
+  // Automation
+  line('# ── Automation Control ──');
+  settingVal('AUTO_SETUP_ACCEPT_LICENSE', '1', 'Accept DietPi license');
+  setting('AUTO_SETUP_AUTOMATED', 'Fully automated first-boot setup');
+  setting('SURVEY_OPTED_IN', 'DietPi usage survey');
+  line('');
+
+  // Network General
+  line('# ── Network - General ──');
+  setting('AUTO_SETUP_NET_ETHERNET_ENABLED');
+  setting('AUTO_SETUP_NET_WIFI_ENABLED');
+  setting('AUTO_SETUP_NET_WIFI_COUNTRY_CODE', 'WiFi country code');
+  setting('AUTO_SETUP_NET_HOSTNAME');
+  setting('AUTO_SETUP_NET_ETH_FORCE_SPEED');
+  setting('AUTO_SETUP_BOOT_WAIT_FOR_NETWORK');
+  setting('CONFIG_ENABLE_IPV6');
+  line('');
+
+  // Network Static
+  line('# ── Network - Static IP ──');
+  setting('AUTO_SETUP_NET_USESTATIC');
+  if (getVal('AUTO_SETUP_NET_USESTATIC') === '1') {
+    setting('AUTO_SETUP_NET_STATIC_IP');
+    setting('AUTO_SETUP_NET_STATIC_MASK');
+    setting('AUTO_SETUP_NET_STATIC_GATEWAY');
+    setting('AUTO_SETUP_NET_STATIC_DNS');
+  }
+  setting('AUTO_SETUP_DHCP_TO_STATIC');
+  line('');
+
+  // Network Proxy
+  const proxyAddr = getVal('CONFIG_PROXY_ADDRESS');
+  if (proxyAddr) {
+    line('# ── Network - Proxy ──');
+    setting('CONFIG_PROXY_ADDRESS');
+    setting('CONFIG_PROXY_PORT');
+    const pu = getVal('CONFIG_PROXY_USERNAME');
+    if (pu) {
+      setting('CONFIG_PROXY_USERNAME');
+      setting('CONFIG_PROXY_PASSWORD');
+    }
+    line('');
+  }
+
+  // Locale
+  line('# ── System - Locale & Regional ──');
+  setting('AUTO_SETUP_LOCALE');
+  setting('AUTO_SETUP_KEYBOARD_LAYOUT');
+  setting('AUTO_SETUP_TIMEZONE');
+  line('');
+
+  // Security
+  line('# ── System - Security ──');
+  setting('AUTO_SETUP_GLOBAL_PASSWORD');
+  setting('SOFTWARE_DISABLE_SSH_PASSWORD_LOGINS');
+  line('');
+
+  // Performance
+  line('# ── System - Performance ──');
+  setting('CONFIG_CPU_GOVERNOR');
+  setting('CONFIG_CPU_ONDEMAND_SAMPLE_RATE');
+  setting('CONFIG_CPU_ONDEMAND_SAMPLE_DOWNFACTOR');
+  setting('CONFIG_CPU_USAGE_THROTTLE_UP');
+  const maxFreq = getVal('CONFIG_CPU_MAX_FREQ');
+  if (maxFreq) settingVal('CONFIG_CPU_MAX_FREQ', maxFreq);
+  const minFreq = getVal('CONFIG_CPU_MIN_FREQ');
+  if (minFreq) settingVal('CONFIG_CPU_MIN_FREQ', minFreq);
+  setting('CONFIG_CPU_DISABLE_TURBO');
+  line('');
+
+  // Misc
+  line('# ── System - Misc ──');
+  setting('AUTO_SETUP_SWAPFILE_SIZE');
+  setting('AUTO_SETUP_SWAPFILE_LOCATION');
+  setting('AUTO_SETUP_HEADLESS');
+  setting('CONFIG_SERIAL_CONSOLE_ENABLE');
+  setting('AUTO_UNMASK_LOGIND');
+  setting('CONFIG_SOUNDCARD');
+  setting('CONFIG_LCDPANEL');
+  setting('CONFIG_GPU_DRIVER');
+  line('');
+
+  // Server Selection
+  line('# ── Software - Server Selection ──');
+  setting('AUTO_SETUP_SSH_SERVER_INDEX');
+  setting('AUTO_SETUP_LOGGING_INDEX');
+  setting('AUTO_SETUP_RAMLOG_MAXSIZE');
+  setting('AUTO_SETUP_WEB_SERVER_INDEX');
+  setting('AUTO_SETUP_DESKTOP_INDEX');
+  setting('AUTO_SETUP_BROWSER_INDEX');
+  line('');
+
+  // Software Install
+  line('# ── Software - Install by ID ──');
+  if (selectedSoftware.size > 0) {
+    const ids = Array.from(selectedSoftware).sort((a,b) => a - b);
+    ids.forEach(id => {
+      const sw = SOFTWARE.find(s => s.id === id);
+      line('AUTO_SETUP_INSTALL_SOFTWARE_ID=' + id + (sw ? '  # ' + sw.name : ''));
+    });
+  } else {
+    line('#AUTO_SETUP_INSTALL_SOFTWARE_ID=0');
+  }
+  line('');
+
+  // APT
+  const apt = getVal('AUTO_SETUP_APT_INSTALLS').trim();
+  if (apt) {
+    line('# ── Software - APT Packages ──');
+    settingVal('AUTO_SETUP_APT_INSTALLS', apt);
+    line('');
+  }
+
+  // Autostart
+  line('# ── Autostart ──');
+  setting('AUTO_SETUP_AUTOSTART_TARGET_INDEX');
+  setting('AUTO_SETUP_AUTOSTART_LOGIN_USER');
+  line('');
+
+  // Software-Specific Settings
+  const swSettings = [];
+  if (selectedSoftware.has(172)) {
+    swSettings.push('# WireGuard');
+    swSettings.push('SOFTWARE_WIREGUARD_MODE=' + getVal('SOFTWARE_WIREGUARD_MODE'));
+    swSettings.push('SOFTWARE_WIREGUARD_PORT=' + getVal('SOFTWARE_WIREGUARD_PORT'));
+  }
+  if (selectedSoftware.has(28)) {
+    swSettings.push('# VNC Server');
+    swSettings.push('SOFTWARE_VNCSERVER_WIDTH=' + getVal('SOFTWARE_VNCSERVER_WIDTH'));
+    swSettings.push('SOFTWARE_VNCSERVER_HEIGHT=' + getVal('SOFTWARE_VNCSERVER_HEIGHT'));
+    swSettings.push('SOFTWARE_VNCSERVER_DEPTH=' + getVal('SOFTWARE_VNCSERVER_DEPTH'));
+    swSettings.push('SOFTWARE_VNCSERVER_DISPLAY_INDEX=' + getVal('SOFTWARE_VNCSERVER_DISPLAY_INDEX'));
+    swSettings.push('SOFTWARE_VNCSERVER_SHARE_DESKTOP=' + getVal('SOFTWARE_VNCSERVER_SHARE_DESKTOP'));
+  }
+  if (selectedSoftware.has(114)) {
+    swSettings.push('# Nextcloud');
+    swSettings.push('SOFTWARE_NEXTCLOUD_USERNAME=' + getVal('SOFTWARE_NEXTCLOUD_USERNAME'));
+    swSettings.push('SOFTWARE_NEXTCLOUD_DATADIR=' + getVal('SOFTWARE_NEXTCLOUD_DATADIR'));
+  }
+  if (selectedSoftware.has(125)) {
+    swSettings.push('# Synapse');
+    swSettings.push('SOFTWARE_SYNAPSE_USERNAME=' + getVal('SOFTWARE_SYNAPSE_USERNAME'));
+  }
+  if (selectedSoftware.has(60)) {
+    swSettings.push('# WiFi Hotspot');
+    swSettings.push('SOFTWARE_WIFI_HOTSPOT_SSID=' + getVal('SOFTWARE_WIFI_HOTSPOT_SSID'));
+    swSettings.push('SOFTWARE_WIFI_HOTSPOT_KEY=' + getVal('SOFTWARE_WIFI_HOTSPOT_KEY'));
+    swSettings.push('SOFTWARE_WIFI_HOTSPOT_CHANNEL=' + getVal('SOFTWARE_WIFI_HOTSPOT_CHANNEL'));
+  }
+  if (selectedSoftware.has(113)) {
+    swSettings.push('# Chromium');
+    swSettings.push('SOFTWARE_CHROMIUM_RES_X=' + getVal('SOFTWARE_CHROMIUM_RES_X'));
+    swSettings.push('SOFTWARE_CHROMIUM_RES_Y=' + getVal('SOFTWARE_CHROMIUM_RES_Y'));
+    const url = getVal('SOFTWARE_CHROMIUM_AUTOSTART_URL');
+    if (url) swSettings.push('SOFTWARE_CHROMIUM_AUTOSTART_URL=' + url);
+  }
+  if (selectedSoftware.has(157)) {
+    swSettings.push('# Home Assistant');
+    const aptDeps = getVal('SOFTWARE_HOMEASSISTANT_APT_DEPS').trim();
+    if (aptDeps) swSettings.push('SOFTWARE_HOMEASSISTANT_APT_DEPS=' + aptDeps);
+    const pipDeps = getVal('SOFTWARE_HOMEASSISTANT_PIP_DEPS').trim();
+    if (pipDeps) swSettings.push('SOFTWARE_HOMEASSISTANT_PIP_DEPS=' + pipDeps);
+  }
+  if (selectedSoftware.has(168)) {
+    const k3sExec = getVal('SOFTWARE_K3S_EXEC').trim();
+    if (k3sExec) { swSettings.push('# K3s'); swSettings.push('SOFTWARE_K3S_EXEC=' + k3sExec); }
+  }
+  if (selectedSoftware.has(200)) {
+    swSettings.push('# DietPi Dashboard');
+    const ver = getVal('SOFTWARE_DIETPI_DASHBOARD_VERSION').trim();
+    if (ver) swSettings.push('SOFTWARE_DIETPI_DASHBOARD_VERSION=' + ver);
+    swSettings.push('SOFTWARE_DIETPI_DASHBOARD_BACKEND=' + getVal('SOFTWARE_DIETPI_DASHBOARD_BACKEND'));
+  }
+  if (selectedSoftware.has(111)) {
+    swSettings.push('# UrBackup');
+    swSettings.push('SOFTWARE_URBACKUP_BACKUPPATH=' + getVal('SOFTWARE_URBACKUP_BACKUPPATH'));
+  }
+  if (selectedSoftware.has(121)) {
+    swSettings.push('# Roon Server');
+    swSettings.push('SOFTWARE_ROONSERVER_EARLYACCESS=' + getVal('SOFTWARE_ROONSERVER_EARLYACCESS'));
+  }
+  if (selectedSoftware.has(6)) {
+    swSettings.push('# Xorg');
+    swSettings.push('SOFTWARE_XORG_DPI=' + getVal('SOFTWARE_XORG_DPI'));
+  }
+  // Domain
+  if ([92,114,125,158].some(id => selectedSoftware.has(id))) {
+    const domain = getVal('SOFTWARE_PUBLIC_DOMAIN_NAME').trim();
+    if (domain) { swSettings.push('# Domain'); swSettings.push('SOFTWARE_PUBLIC_DOMAIN_NAME=' + domain); }
+  }
+
+  if (swSettings.length > 0) {
+    line('# ── Software-Specific Settings ──');
+    swSettings.forEach(s => line(s));
+    line('');
+  }
+
+  // Connectivity
+  line('# ── Connectivity Checks ──');
+  setting('CONFIG_G_CHECK_URL_TIMEOUT');
+  setting('CONFIG_G_CHECK_URL_ATTEMPTS');
+  setting('CONFIG_CHECK_CONNECTION_IP');
+  setting('CONFIG_CHECK_CONNECTION_IPV6');
+  setting('CONFIG_CHECK_DNS_DOMAIN');
+  setting('CONFIG_CHECK_DIETPI_UPDATES');
+  setting('CONFIG_CHECK_APT_UPDATES');
+  setting('CONFIG_NTP_MODE');
+  line('');
+
+  // APT Mirrors
+  line('# ── APT Mirrors ──');
+  setting('CONFIG_APT_RASPBIAN_MIRROR');
+  setting('CONFIG_APT_DEBIAN_MIRROR');
+  setting('CONFIG_NTP_MIRROR');
+  line('');
+
+  // Custom Script
+  line('# ── Custom Script & Backup ──');
+  setting('AUTO_SETUP_CUSTOM_SCRIPT_EXEC');
+  setting('AUTO_SETUP_BACKUP_RESTORE');
+  line('');
+
+  // Developer
+  line('# ── Developer Options ──');
+  setting('DEV_GITBRANCH');
+  setting('DEV_GITOWNER');
+  line('');
+
+  return lines.join('\n');
+}
+
+// ─── Generate dietpi-wifi.txt ───
+function generateWifiTxt() {
+  const lines = [];
+  lines.push('# ──────────────────────────────────────────────────────');
+  lines.push('# DietPi WiFi Configuration');
+  lines.push('# Generated by DietPi Automation Config Builder');
+  lines.push('# ──────────────────────────────────────────────────────');
+  lines.push('');
+
+  const entries = document.querySelectorAll('.wifi-entry');
+  let idx = 0;
+  entries.forEach(entry => {
+    const get = (field) => {
+      const el = entry.querySelector('[data-wifi="' + field + '"]');
+      return el ? el.value : '';
+    };
+    lines.push('# WiFi Network ' + idx);
+    lines.push('aWIFI_SSID[' + idx + ']=\'' + get('ssid') + '\'');
+    lines.push('aWIFI_KEY[' + idx + ']=\'' + get('key') + '\'');
+    lines.push('aWIFI_KEYMGR[' + idx + ']=' + get('keymgr'));
+
+    if (get('keymgr') === 'WPA-EAP') {
+      lines.push('aWIFI_PROTO[' + idx + ']=' + get('proto'));
+      lines.push('aWIFI_PAIRWISE[' + idx + ']=' + get('pairwise'));
+      lines.push('aWIFI_AUTH_ALG[' + idx + ']=' + get('auth_alg'));
+      lines.push('aWIFI_EAP[' + idx + ']=' + get('eap'));
+      lines.push('aWIFI_IDENTITY[' + idx + ']=\'' + get('identity') + '\'');
+      lines.push('aWIFI_PASSWORD[' + idx + ']=\'' + get('password') + '\'');
+      const phase1 = get('phase1');
+      if (phase1) lines.push('aWIFI_PHASE1[' + idx + ']=\'' + phase1 + '\'');
+      const phase2 = get('phase2');
+      if (phase2) lines.push('aWIFI_PHASE2[' + idx + ']=\'' + phase2 + '\'');
+      const cert = get('cert');
+      if (cert) lines.push('aWIFI_CERT[' + idx + ']=\'' + cert + '\'');
+    }
+    lines.push('');
+    idx++;
+  });
+
+  if (idx === 0) {
+    lines.push('# No WiFi networks configured');
+    lines.push('aWIFI_SSID[0]=\'\'');
+    lines.push('aWIFI_KEY[0]=\'\'');
+    lines.push('aWIFI_KEYMGR[0]=WPA-PSK');
+  }
+
+  return lines.join('\n');
+}
+
+// ─── Preview ───
+function generateAndPreview() {
+  runValidation();
+  const dietpiContent = generateDietpiTxt();
+  const wifiContent = generateWifiTxt();
+  updatePreview(dietpiContent, wifiContent);
+  showToast('Config generated');
+}
+
+function updatePreview(dietpiContent, wifiContent) {
+  window._lastDietpi = dietpiContent;
+  window._lastWifi = wifiContent;
+  const pre = document.getElementById('previewText');
+  pre.textContent = currentPreviewTab === 'dietpi' ? dietpiContent : wifiContent;
+}
+
+function switchPreviewTab(tab, btn) {
+  currentPreviewTab = tab;
+  document.querySelectorAll('.preview-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const pre = document.getElementById('previewText');
+  if (tab === 'dietpi' && window._lastDietpi) pre.textContent = window._lastDietpi;
+  else if (tab === 'wifi' && window._lastWifi) pre.textContent = window._lastWifi;
+  else pre.textContent = 'Click "Preview Config" to generate file contents.';
+}
+
+function copyPreview() {
+  const text = document.getElementById('previewText').textContent;
+  copyToClipboard(text);
+}
+
+// ─── Download ───
+function downloadFile(filename, content) {
+  const blob = new Blob([content], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function downloadDietpiTxt() {
+  runValidation();
+  const content = generateDietpiTxt();
+  window._lastDietpi = content;
+  downloadFile('dietpi.txt', content);
+  showToast('dietpi.txt downloaded');
+}
+
+function downloadWifiTxt() {
+  const content = generateWifiTxt();
+  window._lastWifi = content;
+  downloadFile('dietpi-wifi.txt', content);
+  showToast('dietpi-wifi.txt downloaded');
+}
+
+function downloadBoth() {
+  runValidation();
+  downloadDietpiTxt();
+  setTimeout(() => downloadWifiTxt(), 500);
+}
+
+// ─── Reset ───
+function resetAll() {
+  if (!confirm('Reset all settings to defaults?')) return;
+  location.reload();
+}
+
+// ─── Init ───
+function init() {
+  // Set random passwords on load
+  document.getElementById('globalPassword').value = generatePassword();
+
+  buildSidebar();
+  buildTimezoneDropdown();
+  buildSoftwareCatalog();
+  setupConditionalFields();
+
+  // Add initial WiFi entry
+  addWifiEntry();
+
+  // Set hotspot key password
+  const hotspotKey = document.getElementById('hotspotKey');
+  if (hotspotKey) hotspotKey.value = generatePassword();
+
+  // Trigger initial visibility
+  document.getElementById('btnDownloadWifi').classList.add('hidden');
+
+  // Live validation on input
+  document.querySelectorAll('[data-validate]').forEach(input => {
+    input.addEventListener('input', runValidation);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
