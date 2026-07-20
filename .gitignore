@@ -1,3 +1,4 @@
+.omc/
 .codegraph/
 .serena/
 !.serena/project.yml
