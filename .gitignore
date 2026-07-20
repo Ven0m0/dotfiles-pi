@@ -1,0 +1,3 @@
+.codegraph/
+.serena/
+!.serena/project.yml
