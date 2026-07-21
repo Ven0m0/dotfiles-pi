@@ -5,6 +5,9 @@
 #------------------------------------------------------------------------------------------------------
 ##### DietPi-Automation settings, applied on first boot of DietPi only, ONCE! #####
 #------------------------------------------------------------------------------------------------------
+# Accept DietPi license, required for unattended first-boot setup
+AUTO_SETUP_ACCEPT_LICENSE=1
+
 # Initial user and default software installation password
 # - Sets "root" and "dietpi" user's login passwords and is used by dietpi-software as default for software installs which require a password.
 # - Once applied during first run setup, the password is removed from this file, encrypted and stored to a safer location to be used by dietpi-software only.
