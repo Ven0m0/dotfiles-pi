@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ssh": {
+      "command": "npx",
+      "args": ["-y", "@yawlabs/ssh-mcp@latest"]
+    }
+  }
+}
