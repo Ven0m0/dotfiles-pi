@@ -61,7 +61,7 @@ jobs:
         run: xz -dkf "$DIETPI_SOURCE_IMAGE"
 
       - name: Customize image with pimod
-        uses: Nature40/pimod@v0.9.1
+        uses: Nature40/pimod@v0.9.2
         with:
           pifile: Pifile
 
