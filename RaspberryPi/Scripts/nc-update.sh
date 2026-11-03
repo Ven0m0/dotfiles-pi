@@ -16,7 +16,12 @@ if [[ -z ${NC_SKIP_CORE:-} ]]; then
   sudo -u www-data php "${NC_DIR}/updater/updater.phar" --no-interaction
 fi
 
-occ app:update --all
+# app:update runs an app's new repair steps in a process that still has its old
+# classes loaded, so it can crash halfway and leave needsDbUpgrade set. A fresh
+# `occ upgrade` finishes the job (and is a no-op with exit 0 when nothing is pending).
+# shellcheck disable=SC2310
+occ app:update --all || echo "WARNING: app:update failed, finishing via occ upgrade" >&2
+occ upgrade --no-interaction
 occ db:add-missing-indices
 occ db:add-missing-columns
 occ db:add-missing-primary-keys
