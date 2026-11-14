@@ -36,6 +36,7 @@ Build and install Raspberry Pi kernel from source.
 
 Options:
   -b, --branch BRANCH  Kernel branch (default: $KERNEL_BRANCH)
+  -n, --dry-run        Print what would be done and exit; changes nothing
   -y, --yes            Skip confirmation prompts
   -h, --help           Show this help
 
@@ -49,13 +50,14 @@ EOF
 }
 
 # Parse args
-AUTO_YES=0
+AUTO_YES=0 DRY_RUN=0
 while (($#)); do
   case "$1" in
     -b | --branch)
       KERNEL_BRANCH=${2:?}
       shift
       ;;
+    -n | --dry-run) DRY_RUN=1 ;;
     -y | --yes) AUTO_YES=1 ;;
     -h | --help) usage ;;
     *) die "Unknown option: $1" ;;
@@ -65,6 +67,19 @@ done
 
 main() {
   log "Raspberry Pi Kernel Build - branch: $KERNEL_BRANCH"
+
+  if ((DRY_RUN)); then
+    log "Dry run, nothing will be changed. A real run would:"
+    log "  1. apt-get install build dependencies"
+    if [[ -d $KERNEL_SRC/.git ]]; then
+      log "  2. fetch $KERNEL_BRANCH into existing $KERNEL_SRC"
+    else
+      log "  2. DELETE $KERNEL_SRC and clone $KERNEL_BRANCH there"
+    fi
+    log "  3. build, run modules_install, overwrite /boot/kernel8.img, /boot dtbs and overlays"
+    log "  4. append dtoverlay=vc4-kms-v3d to /boot/config.txt if missing, then reboot"
+    exit 0
+  fi
 
   # Require root
   ((EUID == 0)) || die "Must run as root"
@@ -93,6 +108,7 @@ main() {
     git -C "$KERNEL_SRC" checkout FETCH_HEAD
   else
     log "Cloning kernel source..."
+    [[ -n $KERNEL_SRC && $KERNEL_SRC != / ]] || die "Refusing to delete KERNEL_SRC='$KERNEL_SRC'"
     rm -rf "$KERNEL_SRC"
     git clone --depth=1 --filter=blob:none --branch "$KERNEL_BRANCH" \
       https://github.com/raspberrypi/linux "$KERNEL_SRC"
