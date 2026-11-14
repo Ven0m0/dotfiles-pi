@@ -14,6 +14,10 @@
 set -uo pipefail
 
 LOG=/var/log/pihole-unattended-install.log
+# Pinned release: review a new tag before bumping. Cloned instead of `curl | bash` so the code that
+# runs as root is a tagged, inspectable git checkout.
+PIHOLE_TAG=v6.6
+PIHOLE_SRC=/tmp/pi-hole-src
 
 # Pi-hole's installer shows an interface-selection dialog whenever more than one network
 # interface is present; with exactly one available it auto-selects without prompting. Force
@@ -23,7 +27,9 @@ ip link set wlan0 down 2>/dev/null || :
 
 {
   echo "=== Pi-hole unattended install: $(date -Is) ==="
-  if curl -fsSL https://install.pi-hole.net | bash -s -- --unattended; then
+  rm -rf "$PIHOLE_SRC"
+  if git clone --quiet --depth 1 --branch "$PIHOLE_TAG" https://github.com/pi-hole/pi-hole "$PIHOLE_SRC" &&
+    bash "$PIHOLE_SRC/automated install/basic-install.sh" --unattended; then
     echo
     echo "Pi-hole installed. Admin password: see 'pihole setpassword' output above,"
     echo "or set a new one any time with: pihole -a -p"
